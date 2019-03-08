@@ -1,10 +1,9 @@
 <?php
-namespace LSYS\Model\Database\LSYS;
+namespace LSYS\Model\Database;
 use LSYS\Database\DI;
 use LSYS\Database;
-use LSYS\Model\Database\LSYS\MYSQLi\Result;
+use LSYS\Model\Database\MYSQLi\Result;
 use LSYS\Entity\Exception;
-use LSYS\Model\Database\Expr;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
 class MYSQLi implements \LSYS\Model\Database {

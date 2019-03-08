@@ -959,7 +959,6 @@ abstract class Model implements Table{
 	public function havingOpen() {
 	    return $this->andHavingOpen ();
 	}
-	
 	/**
 	 * Opens a new "AND HAVING (...)" grouping.
 	 *
@@ -1028,14 +1027,11 @@ abstract class Model implements Table{
 	    
 	    return $this;
 	}
-	abstract public function entityClass();
 	/**
 	 * @return Database
 	 */
 	public function db(){
 	    return DI::get()->LSYSORMDB();
 	}
-	public function i18n(){
-	    return DI::get()->LSYSORMI18n();
-	}
+	abstract public function entityClass();
 }

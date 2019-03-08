@@ -8,10 +8,7 @@ File::dirs(array(
 //配置依赖
 \LSYS\Model\DI::set(function(){
     return (new \LSYS\Model\DI())
-    ->modelDB(new SingletonCallback(function(){
-        return new \LSYS\Model\Database\Swoole\Mysql();
-    }))
-    ->modelI18n(new SingletonCallback(function(){
-        return new \LSYS\Model\I18n\GetText("./i18n");
-    }));
+        ->modelDB(new SingletonCallback(function(){
+            return new \LSYS\Model\Database\MYSQLi();
+        }));
 });

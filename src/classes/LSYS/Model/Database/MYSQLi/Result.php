@@ -1,5 +1,5 @@
 <?php
-namespace LSYS\Model\Database\LSYS\MYSQLi;
+namespace LSYS\Model\Database\MYSQLi;
 class Result implements \LSYS\Entity\Database\Result {
     protected $_result;
     public function __construct(\LSYS\Database\MYSQLi\Result $result){

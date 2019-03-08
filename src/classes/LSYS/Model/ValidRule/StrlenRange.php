@@ -3,6 +3,7 @@ namespace LSYS\Entity\ValidRule;
 use LSYS\Entity\ValidRule;
 use LSYS\Entity;
 use LSYS\Entity\Validation;
+use LSYS\I18n\DI;
 class StrlenRange implements ValidRule{
     protected $_min;
     protected $_max;
@@ -22,7 +23,7 @@ class StrlenRange implements ValidRule{
      */
     public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
         $len=strlen($value);
-        $i18n=$entity->table()->i18n();
+        $i18n=DI::get();
         $param=array(
           ":label"=>$label,  
           ":min"=>$this->_min,  
