@@ -65,8 +65,6 @@ class MYSQLi implements \LSYS\Model\Database {
             $columns[]=(new Column($key))
             ->setDefault($value['Default'])
             ->setAllowNullable($value['Default'])
-            ->setIsPrimaryKey($value['Default'])
-            ->setType($value['Default'])
             ->setType($value['Default'])
             ;
         }

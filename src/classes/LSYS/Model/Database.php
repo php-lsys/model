@@ -2,7 +2,6 @@
 namespace LSYS\Model;
 use LSYS\Entity\Database\Result;
 use LSYS\Entity\Exception;
-use LSYS\Entity\ColumnSet;
 interface Database extends \LSYS\Entity\Database{
     /**
      * 包裹表名 表名 或 array("表名","别名")
@@ -25,7 +24,7 @@ interface Database extends \LSYS\Entity\Database{
     /**
      * 返回指定表字段集合
      * @param string $table
-     * @return ColumnSet
+     * @return \LSYS\Entity\Database\ColumnSet
      */
     public function listColumns($table);
 	/**

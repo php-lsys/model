@@ -16,7 +16,7 @@ abstract class Model implements Table{
      */
     protected $_column_set;
     /**
-     * @var ColumnSet
+     * @var \LSYS\Entity\Database\ColumnSet
      */
     protected $_table_columns_cache;
 	/**
@@ -40,14 +40,17 @@ abstract class Model implements Table{
 	public function hasMany() {
 	    return [];
 	}
-	public function tableColumns(){
+	protected function _tableColumns(){
 	    if (!$this->_table_columns_cache){
 	        $this->_table_columns_cache=$this->db()->listColumns($this->tableName());
 	    }
 	    return $this->_table_columns_cache;
 	}
+	public function tableColumns(){
+	    return $this->_tableColumns()->columnSet();
+	}
 	public function primaryKey() {
-	    return 'id';
+	    return $this->_tableColumns()->primaryKey();
 	}
 	/**
 	 * @param array|EntityColumnSet|string $column_set $column_set
