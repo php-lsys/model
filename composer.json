@@ -1,0 +1,22 @@
+{
+	"name" : "lsys/model",
+	"type" : "library",
+	"license" : "Apache-2.0",
+	"version" : "2.0.0",
+	"description" : "lsys module model",
+	"require-dev" : {
+		"lsys/i18n" : "^1.0",
+		"lsys/db-mysqli" : "^1.0"
+	},
+	"require" : {
+		"lsys/entity" : "~2.0.0"
+	},
+	"autoload" : {
+		"psr-4" : {
+			"LSYS\\" : "src/classes/LSYS/"
+		}
+	},
+	"bin" : [
+		"bin/lmodel"
+	]
+}
