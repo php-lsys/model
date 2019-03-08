@@ -1,6 +1,6 @@
 <?php
-namespace LSYS\EntityBuilder\Model;
-trait EntityClassFormParse{
+namespace LSYS\Model\Traits;
+trait ModelEntityClassFormParse{
     public function entityClass(){
         static $entity_name;
         if(!$entity_name){

@@ -1,13 +1,13 @@
 <?php
-namespace LSYS\EntityBuilder\Database\LSYS;
+namespace LSYS\Model\Database\LSYS;
 use LSYS\Database\DI;
 use LSYS\Database;
-use LSYS\EntityBuilder\Database\LSYS\MYSQLi\Result;
+use LSYS\Model\Database\LSYS\MYSQLi\Result;
 use LSYS\Entity\Exception;
-use LSYS\EntityBuilder\Database\Expr;
+use LSYS\Model\Database\Expr;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
-class MYSQLi implements \LSYS\EntityBuilder\Database {
+class MYSQLi implements \LSYS\Model\Database {
     protected $_db;
     protected $_use_found_rows=0;
     public function __construct(Database $db=null){

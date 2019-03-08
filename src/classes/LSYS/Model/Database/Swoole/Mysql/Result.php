@@ -1,5 +1,5 @@
 <?php
-namespace LSYS\EntityBuilder\Database\Swoole\Mysql;
-use LSYS\EntityBuilder\Database\ArrayResult;
+namespace LSYS\Model\Database\Swoole\Mysql;
+use LSYS\Model\Database\ArrayResult;
 class Result extends ArrayResult{
 }

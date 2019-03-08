@@ -1,6 +1,6 @@
 <?php
-namespace LSYS\EntityBuilder\Entity;
-trait ORMNameFromParse{
+namespace LSYS\Model\Traits;
+trait EntityModelNameFromParse{
     public function ormName(){
         static $entity_name;
         if(!$entity_name){

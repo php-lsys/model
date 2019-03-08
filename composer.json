@@ -9,7 +9,7 @@
 		"lsys/db-mysqli" : "^1.0"
 	},
 	"require" : {
-		"lsys/entity" : "~2.0.0"
+		"lsys/entity" : "dev-master"
 	},
 	"autoload" : {
 		"psr-4" : {

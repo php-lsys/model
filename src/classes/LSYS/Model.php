@@ -1,11 +1,11 @@
 <?php
-namespace LSYS\EntityBuilder;
-use LSYS\Entity;
+namespace LSYS;
 use LSYS\Entity\Exception;
 use LSYS\Entity\ColumnSet;
 use LSYS\Entity\EntityColumnSet;
 use LSYS\Entity\EntitySet;
 use LSYS\Entity\Table;
+use LSYS\Model\Database;
 abstract class Model implements Table{
     /**
      * @var array
@@ -67,7 +67,7 @@ abstract class Model implements Table{
 	/**
 	 * 设置获取字段列表
 	 * @param array|EntityColumnSet|string $column_set
-	 * @return \LSYS\EntityBuilder\Model
+	 * @return static
 	 */
 	public function columnSet($column_set) {
 	    $this->_column_set=$this->_asEntityColumnSet($column_set);
@@ -1027,7 +1027,7 @@ abstract class Model implements Table{
 	}
 	abstract public function entityClass();
 	/**
-	 * @return \LSYS\EntityBuilder\Database
+	 * @return Database
 	 */
 	public function db(){
 	    return DI::get()->LSYSORMDB();

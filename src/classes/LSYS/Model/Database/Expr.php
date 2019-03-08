@@ -1,5 +1,5 @@
 <?php
-namespace LSYS\EntityBuilder\Database;
+namespace LSYS\Model\Database;
 class Expr{
 	protected $_value;
 	public function __construct($value)

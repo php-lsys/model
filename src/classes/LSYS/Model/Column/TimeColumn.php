@@ -1,5 +1,5 @@
 <?php
-namespace LSYS\EntityBuilder\Column;
+namespace LSYS\Model\Column;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSave;
 use LSYS\Entity;

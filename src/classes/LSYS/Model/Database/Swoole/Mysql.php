@@ -1,11 +1,11 @@
 <?php
-namespace LSYS\EntityBuilder\Database\Swoole;
-use LSYS\EntityBuilder\Database\Expr;
+namespace LSYS\Model\Database\Swoole;
+use LSYS\Model\Database\Expr;
 use LSYS\Entity\Exception;
-use LSYS\EntityBuilder\Database\Swoole\Mysql\Result;
+use LSYS\Model\Database\Swoole\Mysql\Result;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
-class Mysql implements \LSYS\EntityBuilder\Database{
+class Mysql implements \LSYS\Model\Database{
     protected $_mysql;
     protected $_last_sql;
     protected $_table_prefix = '';

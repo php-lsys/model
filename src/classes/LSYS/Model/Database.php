@@ -1,5 +1,5 @@
 <?php
-namespace LSYS\EntityBuilder;
+namespace LSYS\Model;
 use LSYS\Entity\Database\Result;
 use LSYS\Entity\Exception;
 use LSYS\Entity\ColumnSet;

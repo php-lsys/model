@@ -1,5 +1,5 @@
 <?php
-namespace LSYS\EntityBuilder\Database;
+namespace LSYS\Model\Database;
 class ArrayResult implements \LSYS\Entity\Database\Result {
     protected $_data;
     protected $_index=0;

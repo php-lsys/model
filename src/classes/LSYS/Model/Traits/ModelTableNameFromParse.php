@@ -1,6 +1,6 @@
 <?php
-namespace LSYS\EntityBuilder\Model;
-trait TableNameFromParse{
+namespace LSYS\Model\Traits;
+trait ModelTableNameFromParse{
     public function tableName(){
         static $table_name;
         if(!$table_name){
