@@ -1,6 +1,4 @@
 <?php
-use LSYS\Database;
-use LSYS\ORM;
 if (is_file(__DIR__ . '/../vendor/autoload.php')) {
 	require __DIR__ . '/../vendor/autoload.php';
 } elseif (is_file(__DIR__ . '/../../../autoload.php')) {
@@ -13,10 +11,7 @@ if (is_file(__DIR__ . '/../vendor/autoload.php')) {
 if (isset($argv)&&array_search( "--help",$argv)||count($argv)==1){
 	echo "ORM create tools param:\n";
 	echo "\t--namespace= your class namespace\n";	
-	echo "\t--save_dir= your save dir\n";	
-	echo "\t--config_dir= config dir\n";	
-	echo "\t--config_db= database config\n";	
-	echo "\t--split=true is split auto create code\n";	
+	echo "\t--save_dir= your save dir\n";
 	echo "\t--tables= used table list [,]\n";	
 	exit;
 }
@@ -31,6 +26,8 @@ function replace_tpl($tpl,$name,$val,$warp=false){
 	}
 	return $tpl;
 };
+
+
 function cli_param($name,$defalut=NULL){
 	static $param;
 	if ($param===NULL){
@@ -48,14 +45,12 @@ function cli_param($name,$defalut=NULL){
 };
 
 
-$namespace=cli_param("namespace",'ORM');
+$namespace=cli_param("namespace",'Model');
 
 $class_dir=cli_param("save_dir","./");
 $class_dir=trim($class_dir,"/\\")."/";
-$split=cli_param("split",'true');
 
-if ($split=='false'||$split=='0'||$split='')$split=false;
-else $split=true;
+$split=true;
 
 $_tables=cli_param("tables","");
 if (empty($_tables))$_tables=array();
@@ -68,11 +63,9 @@ foreach ($_tables as $k=>$v){
 $config=cli_param("config_dir",null);
 if ($config!=null) LSYS\Config\File::dirs(array($config));
 
-$db_config=cli_param("config_db");
-if ($db_config)$db = LSYS\Config\DI::get()->config($db_config);
-else $db =null;
 
-$db=\LSYS\Database\DI::get()->db($db);
+$db=\LSYS\Model\DI::get()->modelDB();
+
 $tables=$db->list_tables();
 if(!is_dir($class_dir))return die(strtr("class_dir[:dir] not find", array(":dir"=>$class_dir)));
 if (empty($namespace))$namespace=null;
@@ -84,9 +77,6 @@ else{
 	}
 	$class_dir.=DIRECTORY_SEPARATOR;
 }
-
-//不能用PHP Trait 因为再Trait定义属性后,类[包含父类]里面都不能有Trait相同属性定义.
-//不用Trait,无法定义基类
 
 if (!$namespace)$p_namespace='';
 else $p_namespace='namespace '.$namespace.';';
@@ -189,69 +179,43 @@ foreach ($tables as $table){
 	
 	$orm_fill=$db_config.$primary_key.$table_name.$orm_columns.$labels;
 	
-	if (!$split){
-		//orm
-		$orm_file=$class_dir.$orm_name.".php";
-		if (!is_file($orm_file)){
-			//auto orm
-			$orm_file=$class_dir.$orm_name.".php";
-			$tpl=replace_tpl($orm_tpl,'P_NAMESPACE',$p_namespace,true);
-			$tpl=replace_tpl($tpl,'AUTO_ORM','\LSYS\ORM');
-			$tpl=replace_tpl($tpl,'ORM',$orm_name);
-			$tpl=replace_tpl($tpl,'DOC',$orm_doc,true);
-			$tpl=replace_tpl($tpl,'AUTO_CODE',$orm_fill,true);
-			file_put_contents($orm_file, $tpl);
-		}
-		//entity
-		$entity_file=$class_dir.$entity_name.".php";
-		if (!is_file($entity_file)){
-			//auto entity
-			$entity_file=$class_dir.$entity_name.".php";
-			$tpl=replace_tpl($entity_tpl,'P_NAMESPACE',$p_namespace,true);
-			$tpl=replace_tpl($tpl,'AUTO_ENTITY','\LSYS\ORM\Entity');
-			$tpl=replace_tpl($tpl,'ENTITY',$entity_name);
-			$tpl=replace_tpl($tpl,'DOC',$entity_doc,true);
-			file_put_contents($entity_file, $tpl);
-		}
-	}else{
-		
-		$use_namespace=$auto_namespace?('\\'.$auto_namespace):'';
-		$use_orm="use {$use_namespace}\\{$orm_name};";
-		$use_entity="use {$use_namespace}\\{$entity_name};";
-		
-		//auto orm
-		$orm_file=$auto_class_dir.$orm_name.".php";
-		$tpl=replace_tpl($trait_orm_tpl,'P_AUTO_NAMESPACE',$p_auto_namespace,true);
-		$tpl=replace_tpl($tpl,'AUTO_ORM',$orm_name);
-		$tpl=replace_tpl($tpl,'DOC',$orm_doc,true);
-		$tpl=replace_tpl($tpl,'AUTO_CODE',$orm_fill,true);
+	$use_namespace=$auto_namespace?('\\'.$auto_namespace):'';
+	$use_orm="use {$use_namespace}\\{$orm_name};";
+	$use_entity="use {$use_namespace}\\{$entity_name};";
+	
+	//auto orm
+	$orm_file=$auto_class_dir.$orm_name.".php";
+	$tpl=replace_tpl($trait_orm_tpl,'P_AUTO_NAMESPACE',$p_auto_namespace,true);
+	$tpl=replace_tpl($tpl,'AUTO_ORM',$orm_name);
+	$tpl=replace_tpl($tpl,'DOC',$orm_doc,true);
+	$tpl=replace_tpl($tpl,'AUTO_CODE',$orm_fill,true);
+	file_put_contents($orm_file, $tpl);
+	//orm
+	$orm_file=$class_dir.$orm_name.".php";
+	if (!is_file($orm_file)){
+		$tpl=replace_tpl($orm_tpl,'P_NAMESPACE',$p_namespace,true);
+		$tpl=replace_tpl($tpl,'ORM',$orm_name);
+		$tpl=replace_tpl($tpl,'AUTO_ORM','\\'.($auto_namespace?$auto_namespace.'\\':'').$orm_name);
+		$tpl=replace_tpl($tpl,'DOC',null,true);
+		$tpl=replace_tpl($tpl,'AUTO_CODE','',true);
 		file_put_contents($orm_file, $tpl);
-		//orm
-		$orm_file=$class_dir.$orm_name.".php";
-		if (!is_file($orm_file)){
-			$tpl=replace_tpl($orm_tpl,'P_NAMESPACE',$p_namespace,true);
-			$tpl=replace_tpl($tpl,'ORM',$orm_name);
-			$tpl=replace_tpl($tpl,'AUTO_ORM','\\'.($auto_namespace?$auto_namespace.'\\':'').$orm_name);
-			$tpl=replace_tpl($tpl,'DOC',null,true);
-			$tpl=replace_tpl($tpl,'AUTO_CODE','',true);
-			file_put_contents($orm_file, $tpl);
-		}
-		//auto entity
-		$entity_file=$auto_class_dir.$entity_name.".php";
-		$tpl=replace_tpl($trait_entity_tpl,'P_AUTO_NAMESPACE',$p_auto_namespace,true);
-		$tpl=replace_tpl($tpl,'AUTO_ENTITY',$entity_name);
-		$tpl=replace_tpl($tpl,'DOC',$entity_doc,true);
-		file_put_contents($entity_file, $tpl);
-		//entity
-		$entity_file=$class_dir.$entity_name.".php";
-		if (!is_file($entity_file)){
-			$tpl=replace_tpl($entity_tpl,'P_NAMESPACE',$p_namespace,true);
-			$tpl=replace_tpl($tpl,'ENTITY',$entity_name);
-			$tpl=replace_tpl($tpl,'AUTO_ENTITY','\\'.($auto_namespace?$auto_namespace.'\\':'').$entity_name);
-			$tpl=replace_tpl($tpl,'DOC',NULL,true);
-			file_put_contents($entity_file, $tpl);
-		}
 	}
+	//auto entity
+	$entity_file=$auto_class_dir.$entity_name.".php";
+	$tpl=replace_tpl($trait_entity_tpl,'P_AUTO_NAMESPACE',$p_auto_namespace,true);
+	$tpl=replace_tpl($tpl,'AUTO_ENTITY',$entity_name);
+	$tpl=replace_tpl($tpl,'DOC',$entity_doc,true);
+	file_put_contents($entity_file, $tpl);
+	//entity
+	$entity_file=$class_dir.$entity_name.".php";
+	if (!is_file($entity_file)){
+		$tpl=replace_tpl($entity_tpl,'P_NAMESPACE',$p_namespace,true);
+		$tpl=replace_tpl($tpl,'ENTITY',$entity_name);
+		$tpl=replace_tpl($tpl,'AUTO_ENTITY','\\'.($auto_namespace?$auto_namespace.'\\':'').$entity_name);
+		$tpl=replace_tpl($tpl,'DOC',NULL,true);
+		file_put_contents($entity_file, $tpl);
+	}
+	
 	unset($tpl);
 }
 

@@ -5,11 +5,12 @@
 	"version" : "2.0.0",
 	"description" : "lsys module model",
 	"require-dev" : {
-		"lsys/i18n" : "^1.0",
-		"lsys/db-mysqli" : "^1.0"
+		"lsys/config" : "^1.0",
+		"lsys/model-db-mysqli" : "^1.0"
 	},
 	"require" : {
-		"lsys/entity" : "dev-master"
+		"lsys/entity" : "dev-master",
+		"lsys/i18n" : "^1.0"
 	},
 	"autoload" : {
 		"psr-4" : {
