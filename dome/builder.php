@@ -8,3 +8,5 @@ $entity=$orm->wherePk(1)->find();
 print_r($entity->asArray());
 print_r($orm->countAll());
 print_r($orm->findAll());
+
+//$tm=new \LSYS\Model\Table("user");

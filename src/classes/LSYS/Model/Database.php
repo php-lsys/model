@@ -24,7 +24,7 @@ interface Database extends \LSYS\Entity\Database{
     /**
      * 返回指定表字段集合
      * @param string $table
-     * @return \LSYS\Entity\Database\ColumnSet
+     * @return \LSYS\Model\Database\ColumnSet
      */
     public function listColumns($table);
 	/**

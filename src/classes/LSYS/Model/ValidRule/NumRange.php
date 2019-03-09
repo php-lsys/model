@@ -1,5 +1,5 @@
 <?php
-namespace LSYS\Entity\ValidRule;
+namespace LSYS\Model\ValidRule;
 use LSYS\Entity\ValidRule;
 use LSYS\Entity;
 use LSYS\Entity\Validation;

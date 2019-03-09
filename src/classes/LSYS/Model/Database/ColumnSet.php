@@ -1,5 +1,5 @@
 <?php
-namespace LSYS\Entity\Database;
+namespace LSYS\Model\Database;
 /**
  * @method 
  */

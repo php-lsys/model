@@ -1,8 +1,9 @@
 <?php
 namespace Model;
 use LSYS\Model;
+use Model\Traits\ModelUserTrait;
 class ModelUser extends Model{
-    use \Model\Traits\ModelUser;
+    use ModelUserTrait;
     public function hasOne() {
         return [
             'orm1'=>[

@@ -6,7 +6,10 @@ use LSYS\Entity\EntityColumnSet;
 use LSYS\Entity\EntitySet;
 use LSYS\Entity\Table;
 use LSYS\Model\Database;
+use LSYS\Model\Traits\ModelTableColumnsFromDB;
+use LSYS\Model\DI;
 abstract class Model implements Table{
+    use ModelTableColumnsFromDB;
     /**
      * @var array
      */
@@ -15,10 +18,6 @@ abstract class Model implements Table{
      * @var EntityColumnSet
      */
     protected $_column_set;
-    /**
-     * @var \LSYS\Entity\Database\ColumnSet
-     */
-    protected $_table_columns_cache;
 	/**
 	 * 返回hasOne关系
 	 * @return array
@@ -39,18 +38,6 @@ abstract class Model implements Table{
 	 */
 	public function hasMany() {
 	    return [];
-	}
-	protected function _tableColumns(){
-	    if (!$this->_table_columns_cache){
-	        $this->_table_columns_cache=$this->db()->listColumns($this->tableName());
-	    }
-	    return $this->_table_columns_cache;
-	}
-	public function tableColumns(){
-	    return $this->_tableColumns()->columnSet();
-	}
-	public function primaryKey() {
-	    return $this->_tableColumns()->primaryKey();
 	}
 	/**
 	 * @param array|EntityColumnSet|string $column_set $column_set
@@ -1028,10 +1015,17 @@ abstract class Model implements Table{
 	    return $this;
 	}
 	/**
+	 * 返回实体名
+	 * @return string
+	 */
+	public function entityClass()
+	{
+	    return Entity::class;
+	}
+	/**
 	 * @return Database
 	 */
 	public function db(){
 	    return DI::get()->LSYSORMDB();
 	}
-	abstract public function entityClass();
 }

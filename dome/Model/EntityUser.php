@@ -1,11 +1,12 @@
 <?php
 namespace Model;
-use LSYS\Entity;
 use LSYS\Model\Traits\EntityRelatedMethods;
+use Model\Traits\EntityUserTrait;
+use LSYS\Model\Entity;
 /**
  * @method entity1 orm1();
  */
 class EntityUser extends Entity{
-    use \Model\Traits\EntityUser;
+    use EntityUserTrait;
     use EntityRelatedMethods;
 }

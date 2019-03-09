@@ -6,7 +6,7 @@ namespace Model\Traits;
  * @property int $code
  * @method orm1 table()
  */
-trait EntityUser {
+trait EntityUserTrait {
     public function tableClass()
     {
         return \Model\ModelUser::class;
