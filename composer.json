@@ -20,7 +20,6 @@
 			"src/Bootstarp.php"
 		]
 	},
-	"minimum-stability":"dev",
 	"repositories" : [
 		{
 			"name" : "lsys/model",
