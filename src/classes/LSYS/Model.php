@@ -1026,6 +1026,6 @@ abstract class Model implements Table{
 	 * @return Database
 	 */
 	public function db(){
-	    return DI::get()->LSYSORMDB();
+	    return DI::get()->modelDB();
 	}
 }

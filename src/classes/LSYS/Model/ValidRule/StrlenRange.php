@@ -3,7 +3,7 @@ namespace LSYS\Model\ValidRule;
 use LSYS\Entity\ValidRule;
 use LSYS\Entity;
 use LSYS\Entity\Validation;
-use LSYS\I18n\DI;
+use function LSYS\Model\__ as __;
 class StrlenRange implements ValidRule{
     protected $_min;
     protected $_max;
@@ -23,7 +23,6 @@ class StrlenRange implements ValidRule{
      */
     public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
         $len=strlen($value);
-        $i18n=DI::get();
         $param=array(
           ":label"=>$label,  
           ":min"=>$this->_min,  
@@ -31,10 +30,10 @@ class StrlenRange implements ValidRule{
           ":field"=>$field,  
         );
         if ($this->_min>0&&$len<$this->_min) {
-            $validation->error($field, $i18n->__(":label [:field] strlen can't be < :min",$param));
+            $validation->error($field, __(":label [:field] strlen can't be < :min",$param));
         }
         if ($this->_max>0&&$len>$this->_max) {
-            $validation->error($field, $i18n->__(":label [:field] strlen can't be > :max",$param));
+            $validation->error($field, __(":label [:field] strlen can't be > :max",$param));
         }
     }
     public function allowEmpty()

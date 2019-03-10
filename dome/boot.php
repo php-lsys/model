@@ -1,7 +1,8 @@
 <?php
 use LSYS\Config\File;
 use LSYS\DI\SingletonCallback;
-include_once __DIR__."/../vendor/autoload.php";
+$loader=include_once __DIR__."/../vendor/autoload.php";
+$loader->setPsr4("", "./");
 File::dirs(array(
     __DIR__."/config",
 ));

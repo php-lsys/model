@@ -2,5 +2,5 @@
 ```
 lsys/model-db-mysqli
 lsys/model-db-pdo-mysql
-lsys/model-swoole-mysql
+lsys/model-db-swoole-mysql
 ```

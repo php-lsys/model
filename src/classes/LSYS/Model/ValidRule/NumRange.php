@@ -3,7 +3,7 @@ namespace LSYS\Model\ValidRule;
 use LSYS\Entity\ValidRule;
 use LSYS\Entity;
 use LSYS\Entity\Validation;
-use LSYS\I18n\DI;
+use function LSYS\Model\__ as __;
 class NumRange implements ValidRule{
     protected $_min;
     protected $_max;
@@ -22,7 +22,6 @@ class NumRange implements ValidRule{
      * @return bool
      */
     public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
-        $i18n=DI::get();
         $param=array(
           ":label"=>$label,  
           ":min"=>$this->_min,  
@@ -30,13 +29,13 @@ class NumRange implements ValidRule{
           ":field"=>$field,  
         );
         if(!is_numeric($value)){
-            $validation->error($field, $i18n->__(":label [:field] must be number",$param));
+            $validation->error($field, __(":label [:field] must be number",$param));
         }
         if ($this->_min>0&&$value<$this->_min) {
-            $validation->error($field, $i18n->__(":label [:field] can't be < :min",$param));
+            $validation->error($field, __(":label [:field] can't be < :min",$param));
         }
         if ($this->_max>0&&$value>$this->_max) {
-            $validation->error($field, $i18n->__(":label [:field] can't be > :max",$param));
+            $validation->error($field, __(":label [:field] can't be > :max",$param));
         }
     }
     public function allowEmpty()

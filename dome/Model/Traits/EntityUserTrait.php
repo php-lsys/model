@@ -4,7 +4,7 @@ namespace Model\Traits;
  * @property int $id ID
  * @property int $name
  * @property int $code
- * @method orm1 table()
+ * @method \Model\ModelUser table()
  */
 trait EntityUserTrait {
     public function tableClass()

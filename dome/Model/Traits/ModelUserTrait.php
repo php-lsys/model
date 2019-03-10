@@ -1,8 +1,8 @@
 <?php
 namespace Model\Traits;
 /**
- * @method entity1 find($columns=null)
- * @method \LSYS\Entity\Result|entity1[] findAll($columns=null)
+ * @method \Model\EntityUser find()
+ * @method \LSYS\Entity\Result|\Model\EntityUser[] findAll()
  */
 trait ModelUserTrait {
     use \LSYS\Model\Traits\ModelTableColumnsFromFactory;
