@@ -114,13 +114,13 @@ abstract class Model implements Table{
 	 */
 	public function related(Entity $entity,$column,$columns=null) {
 	    if (isset($this->belongsTo()[$column])){
-	        return $this->_findBelongsTo($this, $column,$columns);
+	        return $this->_findBelongsTo($entity, $column,$columns);
 	    }
-	    if (isset($this->has_one()[$column])){
-	        return $this->_findHasOne($this, $column,$columns);
+	    if (isset($this->hasOne()[$column])){
+	        return $this->_findHasOne($entity, $column,$columns);
 	    }
 	    if (isset($this->HasMany()[$column])) {
-	        return $this->_findHasMany($this, $column,$columns);
+	        return $this->_findHasMany($entity, $column,$columns);
 	    }
 	    return null;
 	}
@@ -131,7 +131,7 @@ abstract class Model implements Table{
 	 * @return boolean
 	 */
 	protected function _filterEmpty($related,$val){
-	    $filter=array(0,NULL,FALSYSE);
+	    $filter=array(0,NULL,FALSE);
 	    if (isset($related['filter']))$filter=$related['filter'];
 	    if (!is_array($filter))$filter=[$filter];
 	    return in_array($val,$filter);
@@ -184,7 +184,9 @@ abstract class Model implements Table{
 	    }
 	    $model->columnSet($columns);
 	    $model->where($model->primaryKey(), "=", $val);
-	    return $model->find();
+	    $_entity= $model->find();
+	    $model->reset();
+	    return $_entity;
 	}
 	/**
 	 * 对方有一条记录存本身主键
@@ -205,7 +207,9 @@ abstract class Model implements Table{
 	    $val=$entity->pk();
 	    $model->columnSet($columns);
 	    $model->where($col, "=", $val);
-	    return $model->find();
+	    $_entity= $model->find();
+	    $model->reset();
+	    return $_entity;
 	}
 	/**
 	 * 对方有多条记存本身主键
