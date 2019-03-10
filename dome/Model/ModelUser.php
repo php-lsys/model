@@ -1,5 +1,11 @@
 <?php
 namespace Model;
+/**
+ * 使用　use \LSYS\Model\Traits\ModelTableColumnsFromDB　时加下面的有提示
+ * @method \Model\EntityUser find()
+ * @method \LSYS\Entity\Result|\Model\EntityUser[] findAll()
+ * 使用　use \Model\Traits\ModelUserTrait;不需要
+ */
 class ModelUser extends \LSYS\Model{
     //use \Model\Traits\ModelUserTrait;
     use \LSYS\Model\Traits\ModelTableColumnsFromDB;

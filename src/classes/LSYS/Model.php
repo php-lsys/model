@@ -576,7 +576,7 @@ abstract class Model implements Table{
 	/**
 	 * set primary_key = $pk where
 	 * @param string $pk
-	 * @return $this
+	 * @return static
 	 */
 	public function wherePk($pk){
 	    $this->where($this->primaryKey(), "=", $pk);

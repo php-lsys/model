@@ -2,6 +2,13 @@
 use Model\ModelUser;
 use Model\EntityUser;
 include_once __DIR__."/boot.php";
+
+
+//开箱即用方式
+$tm=new \LSYS\Model\Table("address");
+var_dump($tm->where("id", "=", 10)->find()->asArray());
+
+//预先配置
 $e=new EntityUser();
 $e->name="fasdf".rand(0,10000);
 $e->save();
@@ -19,6 +26,3 @@ $orm->db()->foundRows();
 print_r($orm->reset()->where("id", ">", 30)->findAll()->asArray());
 print_r($orm->countAll());
 
-
-$tm=new \LSYS\Model\Table("address");
-var_dump($tm->where("id", "=", 10)->find()->asArray());
