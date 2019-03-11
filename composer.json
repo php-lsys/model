@@ -5,7 +5,7 @@
 	"version" : "dev-master",
 	"description" : "lsys module model",
 	"require-dev" : {
-		"lsys/model-db-mysqli" : "dev-master"
+		"lsys/model-db-database" : "dev-master"
 	},
 	"require" : {
 		"lsys/entity" : "dev-master",
@@ -27,9 +27,9 @@
 			"url" : "https://github.com/php-lsys/model.git"
 		},
 		{
-			"name" : "lsys/model-db-mysqli",
+			"name" : "lsys/model-db-database",
 			"type" : "git",
-			"url" : "https://github.com/php-lsys/model-db-mysqli.git"
+			"url" : "https://github.com/php-lsys/model-db-database.git"
 		}
 	]
 }
