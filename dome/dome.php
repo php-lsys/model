@@ -8,7 +8,7 @@ include_once __DIR__."/boot.php";
 $tm=new \LSYS\Model\Table("address");
 var_dump($tm->where("id", "=", 10)->find()->asArray());
 
-//预先配置
+//预先配置,可通过 lsys/model-tools 辅助生成表的对应的Trait
 $e=new EntityUser();
 $e->name="fasdf".rand(0,10000);
 $e->save();
