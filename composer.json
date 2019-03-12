@@ -8,9 +8,9 @@
 		"lsys/model-db-database" : "dev-master"
 	},
 	"require" : {
-		"lsys/entity" : "dev-master",
-		"lsys/core" : "~1.0.0",
-		"lsys/i18n" : "~1.0.0"
+		"lsys/entity" : "~2.0.0",
+		"lsys/core" : "~2.0.0",
+		"lsys/i18n" : "~2.0.0"
 	},
 	"autoload" : {
 		"psr-4" : {
@@ -19,17 +19,5 @@
 		"files" : [
 			"src/Bootstarp.php"
 		]
-	},
-	"repositories" : [
-		{
-			"name" : "lsys/model",
-			"type" : "git",
-			"url" : "https://github.com/php-lsys/model.git"
-		},
-		{
-			"name" : "lsys/model-db-database",
-			"type" : "git",
-			"url" : "https://github.com/php-lsys/model-db-database.git"
-		}
-	]
+	}
 }
