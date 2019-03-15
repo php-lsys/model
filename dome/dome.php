@@ -25,4 +25,3 @@ print_r($entity->asArray());
 $orm->db()->foundRows();
 print_r($orm->reset()->where("id", ">", 30)->findAll()->asArray());
 print_r($orm->countAll());
-
