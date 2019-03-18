@@ -5,7 +5,8 @@
 	"version" : "dev-master",
 	"description" : "lsys module model",
 	"require-dev" : {
-		"lsys/model-db-database" : "dev-master"
+		"lsys/model-db-database" : "~2.0.0",
+		"lsys/model-tools" : "~2.0.0"
 	},
 	"require" : {
 		"lsys/entity" : "~2.0.0",

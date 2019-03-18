@@ -52,10 +52,16 @@ interface Database extends \LSYS\Entity\Database{
 	 * @return int
 	 */
 	public function affectedRows();
-	//加事务,事务开始 模型设置事务 -> 模型必须保持同个DB连接
-	//[1,2]
-	//s->link
-	//m 1
-	//m 1
-	//s->com
+	/**
+	 * 事务开始
+	 */
+	public function beginTransaction();
+	/**
+	 * 事务回滚
+	 */
+	public function rollback();
+	/**
+	 * 事务确认
+	 */
+	public function commit();
 }

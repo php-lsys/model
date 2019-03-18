@@ -8,8 +8,10 @@ use LSYS\Entity\Table;
 use LSYS\Model\Database;
 use LSYS\Model\Traits\ModelTableColumnsFromDB;
 use LSYS\Model\DI;
+use LSYS\Model\Transaction;
 abstract class Model implements Table{
     use ModelTableColumnsFromDB;
+    protected $_transaction;
     /**
      * @var array
      */
@@ -1027,9 +1029,19 @@ abstract class Model implements Table{
 	    return Entity::class;
 	}
 	/**
+	 * set transaction and start transaction
+	 * @param Transaction $transaction
+	 * @return \LSYS\ORM
+	 */
+	public function setTransaction(Transaction $transaction){
+	    $this->_transaction=$transaction;
+	    return $this;
+	}
+	/**
 	 * @return Database
 	 */
 	public function db(){
+	    if($this->_transaction) return $this->_transaction->db();
 	    return DI::get()->modelDB();
 	}
 }
