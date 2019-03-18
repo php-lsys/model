@@ -1,7 +1,6 @@
 <?php
 use Model\ModelUser;
 use Model\EntityUser;
-use LSYS\Model\Transaction;
 include_once __DIR__."/boot.php";
 
 
@@ -12,11 +11,7 @@ var_dump($tm->where("id", "=", 10)->find()->asArray());
 //预先配置,可通过 lsys/model-tools 辅助生成表的对应的Trait
 $e=new EntityUser();
 $e->name="fasdf".rand(0,10000);
-$transaction=new Transaction();
-$e->table()->setTransaction($transaction);
-$transaction->beginTransaction();
 $e->save();
-$transaction->commit();
 print_r($e->asArray());
 $orm=new ModelUser();
 $entity=$orm->wherePk(1)->find();
@@ -30,3 +25,20 @@ print_r($entity->asArray());
 $orm->db()->foundRows();
 print_r($orm->reset()->where("id", ">", 30)->findAll()->asArray());
 print_r($orm->countAll());
+
+
+//事务
+$e=new EntityUser();
+$e->name="fasdf".rand(0,10000);
+$e1=new EntityUser();
+$e1->name="fasdf".rand(0,10000);
+$db=$e->table()->db();
+$e1->table()->db($db);
+$db->beginTransaction();
+try{
+    $e->save();
+    $e1->save();
+    $db->commit();
+}catch (Exception $e){
+    $db->rollback();
+}

@@ -57,6 +57,10 @@ interface Database extends \LSYS\Entity\Database{
 	 */
 	public function beginTransaction();
 	/**
+	 * 是否进行事务中
+	 */
+	public function inTransaction();
+	/**
 	 * 事务回滚
 	 */
 	public function rollback();
