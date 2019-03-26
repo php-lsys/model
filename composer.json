@@ -20,5 +20,10 @@
 		"files" : [
 			"src/Bootstarp.php"
 		]
-	}
+	},
+	"suggest": {
+		"lsys/model-db-database" : "~2.0.0",
+		"lsys/model-db-swoole" : "~2.0.0",
+		"lsys/db-mysqli" : "~2.0.0"
+    }
 }
