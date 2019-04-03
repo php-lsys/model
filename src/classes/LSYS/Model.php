@@ -44,14 +44,20 @@ abstract class Model implements Table{
 	 * @param array|EntityColumnSet|string $column_set $column_set
 	 * @return EntityColumnSet
 	 */
-	protected function _asEntityColumnSet($column_set) {
-	    if (is_null($column_set))return $column_set;
-	    if (is_array($column_set)) {
-	        $column_set=new EntityColumnSet($column_set);
-	    }else if (is_string($column_set)) {
-	        $column_set=explode(",", $column_set);
-	        $column_set=array_map('trim',$column_set);
-	        $column_set=new EntityColumnSet($column_set);
+	protected function _asEntityColumnSet($column_set,array $patch_columns=[]) {
+	    if($column_set instanceof EntityColumnSet)return $column_set;
+	    if (is_null($column_set)){
+	        if(empty($patch_columns))return $column_set;
+	        $column_set=new EntityColumnSet($column_set,$patch_columns);
+	    }else{
+	        if (is_array($column_set)) {
+	            $column_set=new EntityColumnSet($column_set,$patch_columns);
+	        }else if (is_string($column_set)) {
+	            $column_set=explode(",", $column_set);
+	            $column_set=array_map('trim',$column_set);
+	            $column_set=array_filter($column_set);
+	            $column_set=new EntityColumnSet($column_set,$patch_columns);
+	        }
 	    }
 	    return $column_set;
 	}
@@ -85,23 +91,53 @@ abstract class Model implements Table{
 	    return (new \ReflectionClass($model_name))->newInstance();
 	}
 	/**
+	 * 请求当前表一批记录
+	 * @param string $sql
+	 * @param array|string $column_set
+	 * @param array $patch_columns
+	 * @return EntitySet
+	 */
+	public function queryAll($sql,$column_set=null,array $patch_columns=[]) {
+	    $result = $this->db()->query ($sql);
+	    $column_set=$this->_asEntityColumnSet($column_set,$patch_columns);
+	    return new EntitySet($result ,$this->entityClass(),$column_set,$this);
+	}
+	/**
+	 * 请求一个记录
+	 * @param string $sql
+	 * @param array|string $column_set
+	 * @param array $patch_columns
+	 * @return \LSYS\Entity
+	 */
+	public function queryOne($sql,$column_set=null,array $patch_columns=[]) {
+	    $entity=$this->_createEntity($this);
+	    $res = $this->db()->query ($sql)->current();
+	    $column_set=$this->_asEntityColumnSet($column_set,$patch_columns);
+	    if(!is_null($res))$entity->loadData($res,$column_set,true);
+	    return $entity;
+	}
+	/**
 	 * 查找一个实体
 	 * @return Entity
 	 */
 	public function find() {
 	    $field=$this->_buildField($this->_columnSet());
 	    $sql = $this->_buildSelect ($field,1);
-	    $entity=$this->_createEntity($this);
-	    $res = $this->db()->query ($sql)->current();
-	    if(!is_null($res))$entity->loadData($res,$this->_column_set,true);
-	    return $entity;
+	    return $this->queryOne($sql,$this->_column_set);
 	}
+	/**
+	 * 查找一批记录
+	 * @return EntitySet
+	 */
 	public function findAll() {
 	    $field=$this->_buildField ($this->_columnSet());
 	    $sql = $this->_buildSelect ($field);
-	    $result = $this->db()->query ($sql);
-	    return new EntitySet($result ,$this->entityClass(),$this->_column_set,$this);
+	    return $this->queryAll($sql,$this->_column_set);
 	}
+	/**
+	 * 统计一批记录数量
+	 * @return number
+	 */
 	public function countAll() {
 	    $sql = $this->_buildSelect ("count(*) as total");
 	    return $this->db()->queryCount($sql,"total");
