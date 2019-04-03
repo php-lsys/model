@@ -1064,6 +1064,13 @@ abstract class Model implements Table{
 	    return Entity::class;
 	}
 	/**
+	 * 得到当前模型的完整表名
+	 * @return string
+	 */
+	public function tableFullName(){
+	    return $this->db()->quoteTable($this->tableName());
+	}
+	/**
 	 * @return Database
 	 */
 	public function db(Database $db=null){
