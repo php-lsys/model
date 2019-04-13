@@ -140,7 +140,7 @@ abstract class Model implements Table{
 	 */
 	public function countAll() {
 	    $sql = $this->_buildSelect ("count(*) as total");
-	    return $this->db()->queryCount($sql,"total");
+	    return $this->db()->queryCount($sql,[],"total");
 	}
 	/**
 	 * 得到关系
