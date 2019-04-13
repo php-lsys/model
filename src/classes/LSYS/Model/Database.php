@@ -33,7 +33,7 @@ interface Database extends \LSYS\Entity\Database{
 	 * @throws Exception
 	 * @return Result
 	 */
-	public function query($sql);
+	public function query($sql,array $data=array());
 	/**
 	 * 执行一个COUNT语句并返回结果数量
 	 * @param string $sql
@@ -41,7 +41,7 @@ interface Database extends \LSYS\Entity\Database{
 	 * @throws Exception
 	 * @return int
 	 */
-	public function queryCount($sql,$total_column='total');
+	public function queryCount($sql,array $data=array(),$total_column='total');
 	/**
 	 * 最后执行SQL
 	 * @return string
