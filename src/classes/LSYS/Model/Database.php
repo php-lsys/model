@@ -68,4 +68,10 @@ interface Database extends \LSYS\Entity\Database{
 	 * 事务确认
 	 */
 	public function commit();
+	/**
+	 * 释放当前对象占用的资源
+	 * 除非你明确当前对象不在使用,否则请不要调用此方法
+	 * 调用此方法后当前对象一般将不在可用
+	 */
+	public function release();
 }
