@@ -4,6 +4,21 @@ use LSYS\Entity\Database\Result;
 use LSYS\Entity\Exception;
 interface Database extends \LSYS\Entity\Database{
     /**
+     * 执行请求时自动选择主从
+     * @var integer
+     */
+    const QUERY_AUTO=0;
+    /**
+     * 执行请求时一次执行主库,之后变为QUERY_AUTO
+     * @var integer
+     */
+    const QUERY_MASTER_ONCE=1;
+    /**
+     * 执行请求时都选择主库
+     * @var integer
+     */
+    const QUERY_MASTER_ALL=2;
+    /**
      * 包裹表名 表名 或 array("表名","别名")
      * @param string|array $table 
      * @return string
@@ -74,4 +89,10 @@ interface Database extends \LSYS\Entity\Database{
 	 * 调用此方法后当前对象一般将不在可用
 	 */
 	public function release();
+	/**
+	 * 设置请求时,发送到那个类型数据库
+	 * @param int $mode 可用为QUERY_*常量值
+	 * @return $this
+	 */
+	public function queryMode($mode);
 }

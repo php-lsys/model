@@ -2,13 +2,23 @@
 use Model\ModelUser;
 use Model\EntityUser;
 include_once __DIR__."/boot.php";
+//!!!!注意: 使用 model前必须配置数据库连接 配置方法 参阅 boot.php 文件
+
 
 
 //开箱即用方式
 $tm=new \LSYS\Model\Table("address");
 var_dump($tm->where("id", "=", 10)->find()->asArray());
 
-//预先配置,可通过 lsys/model-tools 辅助生成表的对应的Trait
+
+//建议不要使用 LSYS\Model\Table 方式操作数据库
+//已提供 lsys/model-tools 库 用于把数据库表直接生成出model代码
+// lsys/model-tools 生成代码的使用 请参阅 lsys/model-tools 库的 dome/ 目录下的文件
+//如果你想手动写 model ,请参阅 Model 目录的方式进行手写 model 类文件
+
+//model 创建好后,以下为使用方法:
+
+
 $e=new EntityUser();
 $e->name="fasdf".rand(0,10000);
 $e->save();
