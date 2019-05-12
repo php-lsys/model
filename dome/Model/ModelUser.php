@@ -2,8 +2,10 @@
 namespace Model;
 /**
  * 使用　use \LSYS\Model\Traits\ModelTableColumnsFromDB　时加下面的有提示
+ * @method \Model\EntityUser queryOne()
  * @method \Model\EntityUser find()
  * @method \LSYS\Entity\Result|\Model\EntityUser[] findAll()
+ * @method \LSYS\Entity\Result|\Model\EntityUser[] queryAll()
  * 使用　use \Model\Traits\ModelUserTrait;不需要
  */
 class ModelUser extends \LSYS\Model{
