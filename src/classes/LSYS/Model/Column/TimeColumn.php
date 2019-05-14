@@ -62,4 +62,18 @@ class TimeColumn extends Column implements ColumnSave{
             else $entity->__set($column, date($this->_format));
         }
     }
+    /**
+     * 拷贝除名字外的所有属性
+     * @param Column $column
+     * @return \LSYS\Entity\Column
+     */
+    public function copy(Column $column) {
+        parent::copy($column);
+        if($column instanceof TimeColumn){
+            $this->_format=$column->_format;
+            $this->_is_create=$column->_is_create;
+            $this->_is_update=$column->_is_update;
+        }
+        return $this;
+    }
 }
