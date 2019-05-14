@@ -2,7 +2,7 @@
 	"name" : "lsys/model",
 	"type" : "library",
 	"license" : "Apache-2.0",
-	"version" : "2.0.7",
+	"version" : "2.0.8",
 	"description" : "lsys module model",
 	"require-dev" : {
 		"lsys/model-db-database" : "~2.0.0",
