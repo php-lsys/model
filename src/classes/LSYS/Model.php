@@ -10,7 +10,7 @@ use LSYS\Model\Traits\ModelTableColumnsFromDB;
 use LSYS\Model\DI;
 abstract class Model implements Table{
     use ModelTableColumnsFromDB;
-    protected $_db;
+    private $_db;
     /**
      * @var array
      */
