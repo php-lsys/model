@@ -32,10 +32,12 @@ interface Database extends \LSYS\Entity\Database{
     public function quoteColumn($column);
     /**
      * 包裹值
+     * $column_type为NULL时候根据$value自动推断
      * @param mixed $value
+     * @param mixed $column_type
      * @return string
      */
-    public function quoteValue($value,$column_type);
+    public function quoteValue($value,$column_type=null);
     /**
      * 返回指定表字段集合
      * @param string $table

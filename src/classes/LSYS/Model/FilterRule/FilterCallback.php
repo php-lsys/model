@@ -2,7 +2,7 @@
 namespace LSYS\Model\FilterRule;
 use LSYS\Entity;
 use LSYS\Entity\FilterRule;
-class Callback implements FilterRule{
+class FilterCallback implements FilterRule{
     protected $_fun;
     protected $_param;
     /**
