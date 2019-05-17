@@ -14,28 +14,28 @@ class EntityUser extends Entity{
     use EntityRelatedMethods;
     //自动校验 自动过滤数据 实现 示例如下
 //     public function filterFactory() {
-//         return (new \LSYS\Entity\Filter($this))->rules(array (
-//             'nickname' => array (
-//                 new \LSYS\Entity\FilterRule\FilterCallback("trim"),
-//                 new \LSYS\Entity\FilterRule\FilterCallback("strip_tags"),
-//             ),
-//             'headimg' => array (
-//                 new \LSYS\Entity\ValidRule\VaildCallback(function($val){
+//         return (new \LSYS\Entity\Filter($this))
+//             ->rules(array (
+//                 new \LSYS\Model\FilterRule\FilterCallback("trim"),
+//                 new \LSYS\Model\FilterRule\FilterCallback("strip_tags"),
+//             ),'nickname')
+//             ->rules(array (
+//                 new \LSYS\Model\ValidRule\VaildCallback(function($val){
 //                     if(empty($val))return NULL;
 //                     else $val;
 //                 })
-//                 ),
-//                 ));
+//             ),'headimg')
+//             ;
 //     }
 //     public function validationFactory() {
-//         return (new \LSYS\Entity\Validation($this))->rules(array (
-//             'nickname' => array (
+//         return (new \LSYS\Entity\Validation($this))
+//             ->rules(array (
 //                 new \LSYS\Model\ValidRule\VaildStrlen(1, 15, 0),
-//             ),
-//             'age' => array (
-//                 new \LSYS\Model\ValidRule\VaildNun(1, 200, 1),
-//             ),
-//         ));
+//             ),'nickname')
+//             ->rules(array (
+//                 new \LSYS\Model\ValidRule\VaildNum(1, 200, 1),
+//             ),'age')
+//         ;
 //     }
     
 }
