@@ -11,6 +11,16 @@ namespace Model;
 class ModelUser extends \LSYS\Model{
     //use \Model\Traits\ModelUserTrait;
     use \LSYS\Model\Traits\ModelTableColumnsFromDB;
+//     //重置字段定义
+//     public function tableColumns(){
+//         return $this->_tableColumns()
+//             ->columnSet()
+//             //重设添加记录时自动补充时间的字段
+//             //->add((new \LSYS\Model\Column\TimeColumn('add_time'))->setCreate(),true)
+//             //重设修改记录时自动补充时间的字段
+//             //->add((new \LSYS\Model\Column\TimeColumn('change_time'))->setUpdate(),true)
+//             ;
+//     }
     public function entityClass()
     {
         return \Model\EntityUser::class;

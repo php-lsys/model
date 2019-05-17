@@ -16,11 +16,11 @@ class EntityUser extends Entity{
 //     public function filterFactory() {
 //         return (new \LSYS\Entity\Filter($this))->rules(array (
 //             'nickname' => array (
-//                 new \LSYS\Entity\FilterRule\Callback("trim"),
-//                 new \LSYS\Entity\FilterRule\Callback("strip_tags"),
+//                 new \LSYS\Entity\FilterRule\FilterCallback("trim"),
+//                 new \LSYS\Entity\FilterRule\FilterCallback("strip_tags"),
 //             ),
 //             'headimg' => array (
-//                 new \LSYS\Entity\ValidRule\Callback(function($val){
+//                 new \LSYS\Entity\ValidRule\VaildCallback(function($val){
 //                     if(empty($val))return NULL;
 //                     else $val;
 //                 })
@@ -30,7 +30,10 @@ class EntityUser extends Entity{
 //     public function validationFactory() {
 //         return (new \LSYS\Entity\Validation($this))->rules(array (
 //             'nickname' => array (
-//                 new \LSYS\Model\ValidRule\StrlenRange(1, 15, 0),
+//                 new \LSYS\Model\ValidRule\VaildStrlen(1, 15, 0),
+//             ),
+//             'age' => array (
+//                 new \LSYS\Model\ValidRule\VaildNun(1, 200, 1),
 //             ),
 //         ));
 //     }

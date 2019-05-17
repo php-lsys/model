@@ -4,7 +4,7 @@ use LSYS\Entity\ValidRule;
 use LSYS\Entity;
 use LSYS\Entity\Validation;
 use function LSYS\Model\__ as __;
-class StrlenRange implements ValidRule{
+class VaildNum implements ValidRule{
     protected $_min;
     protected $_max;
     protected $_allow_empty;
@@ -22,18 +22,20 @@ class StrlenRange implements ValidRule{
      * @return bool
      */
     public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
-        $len=strlen($value);
         $param=array(
           ":label"=>$label,  
           ":min"=>$this->_min,  
           ":max"=>$this->_max,  
           ":field"=>$field,  
         );
-        if ($this->_min>0&&$len<$this->_min) {
-            $validation->error($field, __(":label [:field] strlen can't be < :min",$param));
+        if(!is_numeric($value)){
+            $validation->error($field, __(":label [:field] must be number",$param));
         }
-        if ($this->_max>0&&$len>$this->_max) {
-            $validation->error($field, __(":label [:field] strlen can't be > :max",$param));
+        if ($this->_min>0&&$value<$this->_min) {
+            $validation->error($field, __(":label [:field] can't be < :min",$param));
+        }
+        if ($this->_max>0&&$value>$this->_max) {
+            $validation->error($field, __(":label [:field] can't be > :max",$param));
         }
     }
     public function allowEmpty()
