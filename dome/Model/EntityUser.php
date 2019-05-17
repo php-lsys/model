@@ -20,7 +20,7 @@ class EntityUser extends Entity{
 //                 new \LSYS\Model\FilterRule\FilterCallback("strip_tags"),
 //             ),'nickname')
 //             ->rules(array (
-//                 new \LSYS\Model\ValidRule\VaildCallback(function($val){
+//                 new \LSYS\Model\ValidRule\ValidCallback(function($val){
 //                     if(empty($val))return NULL;
 //                     else $val;
 //                 })
@@ -30,10 +30,10 @@ class EntityUser extends Entity{
 //     public function validationFactory() {
 //         return (new \LSYS\Entity\Validation($this))
 //             ->rules(array (
-//                 new \LSYS\Model\ValidRule\VaildStrlen(1, 15, 0),
+//                 new \LSYS\Model\ValidRule\ValidStrlen(1, 15, 0),
 //             ),'nickname')
 //             ->rules(array (
-//                 new \LSYS\Model\ValidRule\VaildNum(1, 200, 1),
+//                 new \LSYS\Model\ValidRule\ValidNum(1, 200, 1),
 //             ),'age')
 //         ;
 //     }

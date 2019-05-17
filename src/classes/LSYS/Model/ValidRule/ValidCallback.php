@@ -3,7 +3,7 @@ namespace LSYS\Model\ValidRule;
 use LSYS\Entity\ValidRule;
 use LSYS\Entity;
 use LSYS\Entity\Validation;
-class VaildCallback implements ValidRule{
+class ValidCallback implements ValidRule{
     protected $_fun;
     protected $_param;
     protected $_allow_null;

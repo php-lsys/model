@@ -4,7 +4,7 @@ use LSYS\Entity\ValidRule;
 use LSYS\Entity;
 use LSYS\Entity\Validation;
 use function LSYS\Model\__ as __;
-class VaildStrlen implements ValidRule{
+class ValidStrlen implements ValidRule{
     protected $_min;
     protected $_max;
     protected $_allow_empty;
