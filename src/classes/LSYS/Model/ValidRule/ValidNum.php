@@ -13,9 +13,9 @@ class ValidNum implements ValidRule{
      * @param int $max 存在时表示不大于此值
      * @param bool $allow_empty 是否不能为空
      */
-    public function __construct($min,$max,$allow_empty) {
-        $this->_min=intval($min);
-        $this->_max=intval($max);
+    public function __construct($min=null,$max=null,$allow_empty) {
+        $this->_min=$min;
+        $this->_max=$max;
         $this->_allow_empty=boolval($allow_empty);
     }
     /**
@@ -31,10 +31,10 @@ class ValidNum implements ValidRule{
         if(!is_numeric($value)){
             $validation->error($field, __(":label [:field] must be number",$param));
         }
-        if ($this->_min>0&&$value<$this->_min) {
+        if (!is_null($this->_min)&&$value<$this->_min) {
             $validation->error($field, __(":label [:field] can't be < :min",$param));
         }
-        if ($this->_max>0&&$value>$this->_max) {
+        if (!is_null($this->_max)>0&&$value>$this->_max) {
             $validation->error($field, __(":label [:field] can't be > :max",$param));
         }
     }
