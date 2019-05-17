@@ -13,7 +13,7 @@ class ValidNum implements ValidRule{
      * @param int $max 存在时表示不大于此值
      * @param bool $allow_empty 是否不能为空
      */
-    public function __construct($min=null,$max=null,$allow_empty) {
+    public function __construct($min=null,$max=null,$allow_empty=true) {
         $this->_min=$min;
         $this->_max=$max;
         $this->_allow_empty=boolval($allow_empty);
