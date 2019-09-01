@@ -15,16 +15,21 @@
 	},
 	"autoload" : {
 		"psr-4" : {
-			"LSYS\\" : "src/classes/LSYS/"
+			"LSYS\\" :[
+				"src/common/classes/LSYS/",
+				"src/driver-database/classes/LSYS/",
+				"src/driver-swoole/classes/LSYS/",
+				"src/tools/classes/LSYS/"
+			]
 		},
 		"files" : [
-			"src/Bootstarp.php"
+			"src/common/Bootstarp.php"
 		]
 	},
 	"suggest": {
-		"lsys/model-db-database" : "~2.1.0",
-		"lsys/model-db-swoole" : "~2.1.0",
-		"lsys/validation" : "~2.1.0 validrule use it",
-		"lsys/db-mysqli" : "~2.1.0"
+		"lsys/swoole-thrift" : "~2.1.0",
+		"lsys/loger" : "~2.1.0",
+		"lsys/db" : "~2.1.0",
+		"lsys/validation" : "~2.1.0 validrule use it"
     }
 }
