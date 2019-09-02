@@ -46,7 +46,7 @@ class Database implements \LSYS\Model\Database {
             $this->_db->setQuery(\LSYS\Database::QUERY_AUTO);
         }
         try{
-            $res=$this->_db->prepare(\LSYS\Database::DQL, $sql)->execute($data);
+            $res=$this->_db->query($sql,$data);
         }catch (\Exception $_e){
             if($this->mode==\LSYS\Model\Database::QUERY_MASTER_ONCE){
                 $this->_db->setQuery(\LSYS\Database::QUERY_AUTO);
@@ -69,7 +69,7 @@ class Database implements \LSYS\Model\Database {
             $this->_use_found_rows=0;
         }
         try{
-            $row=$this->_db->prepare(\LSYS\Database::DQL, $sql)->execute($data);
+            $row=$this->_db->query($sql,$data);
         }catch (\Exception $_e){
             $e=new Exception($_e->getMessage(),$_e->getCode(),$_e);
             $e->setErrorSql($sql);
@@ -80,7 +80,7 @@ class Database implements \LSYS\Model\Database {
     public function exec($sql,array $data=[])
     {
         try{
-            return $this->_db->prepare(\LSYS\Database::DML, $sql)->execute($data);
+            return $this->_db->exec($sql,$data);
         }catch (\LSYS\Database\Exception $_e){
             $e=new Exception($_e->getMessage(),$_e->getCode(),$_e);
             $e->setErrorSql($sql);

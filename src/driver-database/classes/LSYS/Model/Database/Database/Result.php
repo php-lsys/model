@@ -6,7 +6,7 @@ class Result implements \LSYS\Entity\Database\Result {
         $this->_result=$result;
     }
     public function setFetchFree(){
-        //@todo ...　未实现...
+        $this->_result->setFetchFree();
         return $this;
     }
     public function next()
