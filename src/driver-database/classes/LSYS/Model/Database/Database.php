@@ -3,9 +3,10 @@ namespace LSYS\Model\Database;
 use LSYS\Database\DI;
 use LSYS\Model\Database\Database\Result;
 use LSYS\Entity\Exception;
-use LSYS\Entity\Column;
-use LSYS\Entity\ColumnSet;
-class Database implements \LSYS\Model\Database {
+abstract class Database implements \LSYS\Model\Database {
+    /**
+     * @var \LSYS\Database
+     */
     protected $_db;
     protected $_use_found_rows=0;
     protected $_is_mysql=0;
@@ -41,15 +42,15 @@ class Database implements \LSYS\Model\Database {
             $this->_use_found_rows=2;
         }
         if(in_array($this->mode, [\LSYS\Model\Database::QUERY_MASTER_ALL,\LSYS\Model\Database::QUERY_MASTER_ONCE])){
-            $this->_db->setQuery(\LSYS\Database::QUERY_MASTER);
+            $this->_db->getConnectManager()->setQuery(\LSYS\Database\ConnectManager::QUERY_MASTER);
         }else{
-            $this->_db->setQuery(\LSYS\Database::QUERY_AUTO);
+            $this->_db->getConnectManager()->setQuery(\LSYS\Database\ConnectManager::QUERY_AUTO);
         }
         try{
             $res=$this->_db->query($sql,$data);
         }catch (\Exception $_e){
             if($this->mode==\LSYS\Model\Database::QUERY_MASTER_ONCE){
-                $this->_db->setQuery(\LSYS\Database::QUERY_AUTO);
+                $this->_db->getConnectManager()->setQuery(\LSYS\Database\ConnectManager::QUERY_AUTO);
                 $this->mode=\LSYS\Model\Database::QUERY_AUTO;
             }
             $e=new Exception($_e->getMessage(),$_e->getCode(),$_e);
@@ -57,7 +58,7 @@ class Database implements \LSYS\Model\Database {
             throw $e;
         }
         if($this->mode==\LSYS\Model\Database::QUERY_MASTER_ONCE){
-            $this->_db->setQuery(\LSYS\Database::QUERY_AUTO);
+            $this->_db->getConnectManager()->setQuery(\LSYS\Database\ConnectManager::QUERY_AUTO);
             $this->mode=\LSYS\Model\Database::QUERY_AUTO;
         }
         return new Result($res);
@@ -86,21 +87,6 @@ class Database implements \LSYS\Model\Database {
             $e->setErrorSql($sql);
             throw $e;
         }
-    }
-    public function listColumns($table)
-    {
-        $columns=[];
-        $pk=[];
-        foreach ($this->_db->listColumns($table) as $key=>$value) {
-            $column=new Column($key);
-            if($value['key']=='PRI')$pk[]=$key;
-            if(isset($value['is_nullable'])&&$value['is_nullable'])$column->setAllowNull(1);
-            if(isset($value['column_default']))$column->setDefault($value['column_default']);
-            if(isset($value['type']))$column->setType($value['type']);
-            if(isset($value['comment']))$column->setComment(trim($value['comment']));
-            $columns[]=$column;
-        }
-        return new \LSYS\Model\Database\ColumnSet(new ColumnSet($columns), count($pk)==1?array_shift($pk):$pk);
     }
     public function insertId()
     {

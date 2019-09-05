@@ -10,11 +10,16 @@ class DomeModelBuild extends TraitBuild{
         $this->_db=LSYS\Database\DI::get()->db();
     }
     public function db(){
-        return new \LSYS\Model\Database\Database($this->_db);
+        return new \LSYS\Model\Database\Database\MYSQL($this->_db);
     }
     public function listTables()
     {
-        return $this->_db->listTables();
+        $sql='SHOW TABLES';
+        $out=[];
+        foreach ($this->_db->query($sql) as $value) {
+            $out[]=array_shift($value);
+        }
+        return $out;
     }
     public function tablePrefix(){
         return $this->_db->tablePrefix();
