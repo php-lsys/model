@@ -11,7 +11,7 @@ File::dirs(array(
 \LSYS\Model\DI::set(function(){
     return (new \LSYS\Model\DI())
         ->modelDB(new SingletonCallback(function(){
-            //使用以下数据库连接 请先引入 lsys/model-db-database 和 lsys/db-mysqli 两个库
+            //使用以下数据库连接 请先引入 lsys/model-db-database 和 lsys/db 两个库
             $db = Database::factory(LSYS\Config\DI::get()->config("database.mysqli"));
             return new \LSYS\Model\Database\Database\MYSQL($db);//默认不传 $db 将从Database的DI中获取数据库对象
         }));
