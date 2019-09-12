@@ -154,6 +154,8 @@ abstract class Database implements \LSYS\Model\Database {
         if ($this->inTransaction()) {
             $this->rollback();
         }
-        if($this->_db)$this->_db->disconnect();
+        if($this->_db&&$this->_db->getConnectManager()->isConnected()){
+            $this->_db->getConnectManager()->disConnect();
+        }
     }
 }

@@ -4,8 +4,7 @@
 	"license" : "Apache-2.0",
 	"description" : "lsys module model",
 	"require-dev" : {
-		"lsys/model-db-database" : "~2.1.0",
-		"lsys/model-tools" : "~2.1.0",
+		"lsys/db" : "~2.1.0",
 		"lsys/validation" : "~2.1.0"
 	},
 	"require" : {
