@@ -5,10 +5,18 @@ include_once __DIR__."/boot.php";
 //!!!!注意: 使用 model前必须配置数据库连接 配置方法 参阅 boot.php 文件
 
 
+// CREATE TABLE `user` (
+//     `id` int(11) NOT NULL AUTO_INCREMENT,
+//     `name` varchar(100) DEFAULT NULL,
+//     `add_time` int(11) DEFAULT NULL,
+//     `code` varchar(100) DEFAULT NULL,
+//     PRIMARY KEY (`id`)
+//     ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
 //开箱即用方式
-$tm=new \LSYS\Model\Table("address");
-var_dump($tm->where("id", "=", 10)->find()->asArray());
+$tm=new \LSYS\Model\Table("user");
+var_dump($tm->dbBuilder()->where("id", "=", 10)->find()->asArray());
+
 
 
 //建议不要使用 LSYS\Model\Table 方式操作数据库
@@ -18,13 +26,16 @@ var_dump($tm->where("id", "=", 10)->find()->asArray());
 
 //model 创建好后,以下为使用方法:
 
-
 $e=new EntityUser();
+
+//单记录操作
 $e->name="fasdf".rand(0,10000);
 $e->save();
 print_r($e->asArray());
 $orm=new ModelUser();
-$entity=$orm->wherePk(1)->find();
+
+
+$entity=$orm->dbBuilder()->wherePk(1)->find();
 print_r($entity->orm1()->asarray());
 print_r($entity->orm2()->asarray());
 print_r($entity->orm3()->findall()->asarray());
@@ -33,8 +44,8 @@ print_r($t->findall()->asarray());
 print_r($t->countall());
 print_r($entity->asArray());
 $orm->db()->foundRows();
-print_r($orm->reset()->where("id", ">", 30)->findAll()->asArray());
-print_r($orm->countAll());
+print_r($orm->dbBuilder()->reset()->where("id", ">", 30)->findAll()->asArray());
+print_r($orm->dbBuilder()->countAll());
 
 
 //事务
@@ -49,6 +60,29 @@ try{
     $e->save();
     $e1->save();
     $db->commit();
-}catch (Exception $e){
+}catch (Exception $err){
     $db->rollback();
 }
+
+//批量操作
+
+//批量插入
+$data=[];
+$b=array(["name"=>"bbb"],["name"=>"ddd"]);
+foreach ($b as $bb){
+    $data[]=$e->values($bb)->check()->insertData();
+}
+$e->table()->dbBuilder()->insert($data);
+//未查找记录批量更新
+$tm->dbBuilder()->update(array(
+    'name'=>'11'
+),$tm->db()->expr("id=:id",[":id"=>"1"]));
+//查找记录后批量更新
+$res=$e->table()->findAll();
+foreach ($res as $bb){
+    $bb->values($b[0])->check();
+}
+$tm->dbBuilder()->update($res->current()->updateData(),$res);
+
+//批量删除
+$tm->dbBuilder()->delete($tm->db()->expr("name=:bb",[":bb"=>"ddd"]));

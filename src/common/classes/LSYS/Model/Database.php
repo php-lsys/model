@@ -2,6 +2,7 @@
 namespace LSYS\Model;
 use LSYS\Entity\Database\Result;
 use LSYS\Entity\Exception;
+use LSYS\Model\Database\Expr;
 interface Database extends \LSYS\Entity\Database{
     /**
      * 执行请求时自动选择主从
@@ -97,4 +98,10 @@ interface Database extends \LSYS\Entity\Database{
 	 * @return $this
 	 */
 	public function queryMode($mode);
+	/**
+	 * 得到expr对象
+	 * @param mixed ...$args
+	 * @return Expr
+	 */
+	public function expr($value,array $param);
 }

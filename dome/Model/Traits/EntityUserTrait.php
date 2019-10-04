@@ -1,14 +1,15 @@
 <?php
 namespace Model\Traits;
 /**
- * @property int $id ID
- * @property int $name
- * @property int $code
+ * @property int(11) $id	
+ * @property varchar(100) $name	
+ * @property int(11) $add_time	
+ * @property varchar(100) $code	
  * @method \Model\ModelUser table()
- */
-trait EntityUserTrait {
+*/
+trait EntityUserTrait{
     public function tableClass()
     {
-        return \Model\ModelUser::class;
+        RETURN \Model\ModelUser::class;
     }
 }

@@ -3,6 +3,8 @@ namespace LSYS\Model\Database;
 use LSYS\Database\DI;
 use LSYS\Model\Database\Database\Result;
 use LSYS\Entity\Exception;
+use LSYS\Entity\Database\SQLBuilder;
+use LSYS\Entity\Table;
 abstract class Database implements \LSYS\Model\Database {
     /**
      * @var \LSYS\Database
@@ -157,5 +159,12 @@ abstract class Database implements \LSYS\Model\Database {
         if($this->_db&&$this->_db->getConnectManager()->isConnected()){
             $this->_db->getConnectManager()->disConnect();
         }
+    }
+    public function expr($value,array $param) {
+        return \LSYS\Database::expr($value,$param);
+    }
+    public function sqlBuilder(Table $table)
+    {
+        return new SQLBuilder($table);
     }
 }

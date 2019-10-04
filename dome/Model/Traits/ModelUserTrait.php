@@ -1,18 +1,31 @@
 <?php
 namespace Model\Traits;
-/**
- * @method \Model\EntityUser find()
- * @method \LSYS\Entity\Result|\Model\EntityUser[] findAll()
- */
 trait ModelUserTrait {
     use \LSYS\Model\Traits\ModelTableColumnsFromFactory;
-    public function tableColumnsFactory(){
+    /**
+     * 重写此方法进行自定义字段填充
+     * @rewrite
+     * @param \LSYS\Entity\ColumnSet $table_columns
+     */
+    private function customColumnsFactory(\LSYS\Entity\ColumnSet $table_columns){}
+    public function tableColumns(){
+        if (!isset(self::$_table_columns_code)){
+            self::$_table_columns_code=$this->tableColumnsFactory();
+            $_table_columns_code=$this->customColumnsFactory(self::$_table_columns_code);
+            if($_table_columns_code instanceof \LSYS\Entity\ColumnSet)self::$_table_columns_code=$_table_columns_code;
+        }
+        return self::$_table_columns_code;
+    }
+    private function tableColumnsFactory(){
         return new \LSYS\Entity\ColumnSet([
-            (new \LSYS\Entity\Column("id"))
+            (new \LSYS\Entity\Column('id'))->setType('int(11)')->setDefault(''),
+			(new \LSYS\Entity\Column('name'))->setType('varchar(100)')->setDefault(''),
+			(new \LSYS\Entity\Column('add_time'))->setType('int(11)')->setDefault(''),
+			(new \LSYS\Entity\Column('code'))->setType('varchar(100)')->setDefault('')
         ]);
     }
     public function primaryKey() {
-        return "id";
+        return 'id';
     }
     public function entityClass()
     {
@@ -20,7 +33,19 @@ trait ModelUserTrait {
     }
     public function tableName()
     {
-        return "address";
+        return "user";
     }
-}
     
+    private $_db_builder;
+    /**
+     * @return \Model\Traits\BuilderUser
+     */
+    public function dbBuilder() {
+       $table_name=$this->tableName();
+       if (!isset($this->_db_builder[$table_name])){
+           $this->_db_builder[$table_name]=new \Model\Traits\BuilderUser($this);
+       }
+       return $this->_db_builder[$table_name];
+    }
+        
+}

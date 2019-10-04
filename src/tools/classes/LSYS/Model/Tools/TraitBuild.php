@@ -10,6 +10,7 @@ abstract class TraitBuild{
     private $_create_entity=1;
     private $_create_model_trait=1;
     private $_create_entity_trait=1;
+    private $_create_builder=1;
     public function __construct($dir){
         $this->setSaveDir($dir);
     }
@@ -25,12 +26,14 @@ abstract class TraitBuild{
         $is_create_model=1,
         $is_create_entity=1,
         $is_create_model_trait=1,
-        $is_create_entity_trait=1
+        $is_create_entity_trait=1,
+        $is_create_builder=1
     ){
         $this->_create_entity=$is_create_entity;
         $this->_create_model=$is_create_model;
         $this->_create_entity_trait=$is_create_model_trait;
         $this->_create_model_trait=$is_create_entity_trait;
+        $this->_create_builder=$is_create_builder;
         return $this;
     }
     /**
@@ -66,6 +69,13 @@ abstract class TraitBuild{
      */
     public function parentModelClassName(){
         return \LSYS\Model::class;
+    }
+    /**
+     * 数据库请求构造器的父类名
+     * @return string
+     */
+    public function parentBuilderClassName(){
+        return \LSYS\Model\Database\Builder::class;
     }
     /**
      * 实体继承的父类名
@@ -107,6 +117,22 @@ abstract class TraitBuild{
      */
     protected function modelFileName($model_name){
         return $model_name;
+    }
+    /**
+     * 数据库执行构造器名
+     * @param string $builder_name
+     * @return string
+     */
+    protected function builderName($table){
+        return 'Builder'.$this->tableToName($table);
+    }
+    /**
+     * 数据库执行构造器文件名
+     * @param string $builder_name
+     * @return string
+     */
+    protected function builderFileName($builder_name){
+        return $builder_name;
     }
     /**
      * model片段名生成
@@ -162,11 +188,18 @@ abstract class TraitBuild{
         return file_get_contents(__DIR__.'/../../../../tpls/ModelTpl.php');
     }
     /**
-     * entity末班
+     * entity模板
      * @return string
      */
     protected function entityTpl(){
         return file_get_contents(__DIR__.'/../../../../tpls/EntityTpl.php');
+    }
+    /**
+     * builder模板
+     * @return string
+     */
+    protected function builderTpl(){
+        return file_get_contents(__DIR__.'/../../../../tpls/BuilderTpl.php');
     }
     /**
      * 生成entity注释
@@ -184,7 +217,7 @@ abstract class TraitBuild{
             $commit=strval($column->comment());
             $commit=str_replace(["\n","\r"],' ', $commit);
             $commit=str_replace(",",' ', $commit);
-            if ($column->useDefault()) {
+            if ($column->useDefault()&&!empty($column->getDefault())) {
                 $commit.=" [".$column->getDefault().']';
             }
             $doc[]=" * @property {$type} \${$name}\t{$commit}";
@@ -203,8 +236,9 @@ abstract class TraitBuild{
      * @param string $entity_name
      * @return string
      */
-    protected function createModelTraitDoc($entity_name){
+    protected function createBuilderDoc($entity_name,$model_name){
         $doc=[];
+        $doc[]=" * @method {$model_name} table()";
         $doc[]=" * @method {$entity_name} find()";
         $doc[]=" * @method {$entity_name} queryOne(\$sql,\$column_set=null,array \$patch_columns=[])";
         $doc[]=" * @method \LSYS\Entity\EntitySet|{$entity_name}[] findAll()";
@@ -253,6 +287,26 @@ abstract class TraitBuild{
         // (new \LSYS\Entity\Column('id'))
     }
     /**
+     * 替换model中的数据库执行构造器
+     * @param string $builder_name
+     * @return string
+     */
+    protected function createBuilderMethod($builder_name){
+        return "
+    private \$_db_builder;
+    /**
+     * @return $builder_name
+     */
+    public function dbBuilder() {
+       \$table_name=\$this->tableName();
+       if (!isset(\$this->_db_builder[\$table_name])){
+           \$this->_db_builder[\$table_name]=new {$builder_name}(\$this);
+       }
+       return \$this->_db_builder[\$table_name];
+    }
+        ";
+    }
+    /**
      * 创建代码
      * @throws \Exception
      */
@@ -282,6 +336,7 @@ abstract class TraitBuild{
         $orm_tpl=$this->modelTpl();
         $trait_entity_tpl=$this->TraitEntityTpl();
         $entity_tpl=$this->EntityTpl();
+        $builder_tpl=$this->builderTpl();
         
         $tp=$this->tablePrefix();
         $tables=$this->listTables();
@@ -303,22 +358,42 @@ abstract class TraitBuild{
             $model_trait_name=$this->modelTraitName($table_name);
             $entity_name=$this->entityName($table_name);
             $entity_trait_name=$this->entityTraitName($table_name);
+            $builder_name=$this->builderName($table_name);
+            $builder_file_name=$this->builderFileName($builder_name);
           
             
+            if ($this->_create_builder) {
+                $builder_file=$auto_class_dir.$builder_file_name.".php";
+                $tpl=$this->replaceTpl($builder_tpl,'NAMESPACE',$p_auto_namespace,true);
+                $tpl=$this->replaceTpl($tpl,'BUILDER',$builder_name,false);
+                $fentity_name=($namespace?"\\":"").$namespace."\\".$entity_name;
+                $fmodel_name=($namespace?"\\":"").$namespace."\\".$model_name;
+                $builder_doc=$this->createBuilderDoc($fentity_name,$fmodel_name);
+                $tpl=$this->replaceTpl($tpl,'DOC',$builder_doc,true);
+                $tpl=$this->replaceTpl($tpl,'PARENT_BUILDER'," extends \\".ltrim($this->parentBuilderClassName(),"\\"),true);
+                file_put_contents($builder_file, $tpl);
+            }
+            
+            
             $fentity_name=($namespace?"\\":"").$namespace."\\".$entity_name;
-            $orm_doc=$this->createModelTraitDoc($fentity_name);
             $orm_file=$auto_class_dir.$model_trait_name.".php";
             $columncode=$this->createEntityTraitColumnCode($columnset->columnSet());
             $pk=$columnset->primaryKey();
             if(is_array($pk))$pk=var_export($pk,1);
+            else $pk="'{$pk}'";
             if($this->_create_model_trait){
                 $tpl=$this->replaceTpl($trait_orm_tpl,'NAMESPACE',$p_auto_namespace,true);
-                $tpl=$this->replaceTpl($tpl,'DOC',$orm_doc,true);
                 $tpl=$this->replaceTpl($tpl,'TRAIT_MODEL',$model_trait_name);
                 $tpl=$this->replaceTpl($tpl,'COLUMNS',$columncode,true);
-                $tpl=$this->replaceTpl($tpl,'PK',$pk);
+                $tpl=$this->replaceTpl($tpl,'PK',$pk,true);
                 $tpl=$this->replaceTpl($tpl,'ENTITY_CLASS',$fentity_name."::class",true);
                 $tpl=$this->replaceTpl($tpl,'TABLE_NAME',$table_name);
+                $builder_method='';
+                if ($this->_create_builder){
+                    $fbuilder_name=($auto_namespace?"\\":"").$auto_namespace.'\\'.$builder_name;
+                    $builder_method=$this->createBuilderMethod($fbuilder_name);
+                }
+                $tpl=$this->replaceTpl($tpl,'BUILDER_METHOD',$builder_method,true);
                 file_put_contents($orm_file, $tpl);
             }
             

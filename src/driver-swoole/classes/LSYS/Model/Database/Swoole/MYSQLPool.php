@@ -163,7 +163,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         }
         if ($column instanceof Expr) {
             // Compile the expression
-            $column = $column->value();
+            $column = $column->compile($this);
         } else {
             // Convert to a string
             $column = ( string ) $column;
@@ -211,7 +211,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         
         if ($table instanceof Expr) {
             // Compile the expression
-            $table = $table->value ();
+            $table = $table->compile ($this);
         } else {
             // Convert to a string
             $table = ( string ) $table;
@@ -259,7 +259,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         } elseif (is_object ( $value )) {
             if ($value instanceof Expr) {
                 // Compile the expression
-                return $value->value( );
+                return $value->compile($this);
             } else {
                 // Convert the object to a string
                 return $this->quoteValue ( ( string ) $value,$column_type );
@@ -340,5 +340,9 @@ class MYSQLPool implements \LSYS\Model\Database {
         //因为使用连接池资源.这里只有在事务时才会占用资源
         //事务进行时有调用,无法确定是否是事务完全完结.所以这里直接回滚
         $this->rollback();
+    }
+    public function expr($value, array $param)
+    {
+        return new \LSYS\Model\Database\Swoole\Expr($value, $param);
     }
 }

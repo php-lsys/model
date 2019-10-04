@@ -225,7 +225,7 @@ class MYSQL implements \LSYS\Model\Database {
         }
         if ($column instanceof Expr) {
             // Compile the expression
-            $column = $column->value();
+            $column = $column->compile($this);
         } else {
             // Convert to a string
             $column = ( string ) $column;
@@ -274,7 +274,7 @@ class MYSQL implements \LSYS\Model\Database {
         
         if ($table instanceof Expr) {
             // Compile the expression
-            $table = $table->value ();
+            $table = $table->compile ($this);
         } else {
             // Convert to a string
             $table = ( string ) $table;
@@ -321,7 +321,7 @@ class MYSQL implements \LSYS\Model\Database {
         } elseif (is_object ( $value )) {
             if ($value instanceof Expr) {
                 // Compile the expression
-                return $value->value( );
+                return $value->compile($this);
             } else {
                 // Convert the object to a string
                 return $this->quoteValue ( ( string ) $value,$column_type );
@@ -405,5 +405,9 @@ class MYSQL implements \LSYS\Model\Database {
             $this->_master_mysql_connect=0;
             $this->_master_mysql=null;
         }
+    }
+    public function expr($value, array $param)
+    {
+        return new \LSYS\Model\Database\Swoole\Expr($value, $param);
     }
 }

@@ -1,6 +1,5 @@
 <?php
 /*__LSYS_TPL_NAMESPACE__*/
-/*__LSYS_TPL_DOC__*/
 trait __LSYS_TPL_TRAIT_MODEL__ {
     use \LSYS\Model\Traits\ModelTableColumnsFromFactory;
     /**
@@ -23,7 +22,7 @@ trait __LSYS_TPL_TRAIT_MODEL__ {
         ]);
     }
     public function primaryKey() {
-        return "__LSYS_TPL_PK__";
+        return /*__LSYS_TPL_PK__*/;
     }
     public function entityClass()
     {
@@ -33,4 +32,5 @@ trait __LSYS_TPL_TRAIT_MODEL__ {
     {
         return "__LSYS_TPL_TABLE_NAME__";
     }
+    /*__LSYS_TPL_BUILDER_METHOD__*/
 }

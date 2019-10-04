@@ -1,0 +1,4 @@
+<?php
+/*__LSYS_TPL_NAMESPACE__*/
+/*__LSYS_TPL_DOC__*/
+class __LSYS_TPL_BUILDER__ /*__LSYS_TPL_PARENT_BUILDER__*/{}

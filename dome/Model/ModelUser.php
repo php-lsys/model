@@ -2,15 +2,11 @@
 namespace Model;
 /**
  * 使用　use \LSYS\Model\Traits\ModelTableColumnsFromDB　时加下面的有提示
- * @method \Model\EntityUser queryOne()
- * @method \Model\EntityUser find()
- * @method \LSYS\Entity\Result|\Model\EntityUser[] findAll()
- * @method \LSYS\Entity\Result|\Model\EntityUser[] queryAll()
  * 使用　use \Model\Traits\ModelUserTrait;不需要
  */
 class ModelUser extends \LSYS\Model{
-    //use \Model\Traits\ModelUserTrait;
-    use \LSYS\Model\Traits\ModelTableColumnsFromDB;
+    use \Model\Traits\ModelUserTrait;
+   // use \LSYS\Model\Traits\ModelTableColumnsFromDB;
 //     //重置字段定义
 //     public function tableColumns(){
 //         return $this->_tableColumns()
@@ -27,7 +23,7 @@ class ModelUser extends \LSYS\Model{
     }
     public function tableName()
     {
-        return "address";
+        return "user";
     }
     public function hasOne() {
         return [
@@ -58,5 +54,8 @@ class ModelUser extends \LSYS\Model{
                 'foreign_key'=>'sn'
             ]
         ];
+    }
+    public function dataList() {
+        return $this->dbBuilder()->where("id",">=", 1)->findAll();
     }
 }

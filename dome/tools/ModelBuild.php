@@ -4,7 +4,7 @@ use LSYS\Model\Tools\TraitBuild;
 class DomeModelBuild extends TraitBuild{
     protected $_db;
     public function __construct(){
-        $this->setSaveDir("./")
+        $this->setSaveDir("../")
             ->setNamespace("Model")
         ;
         $this->_db=LSYS\Database\DI::get()->db();
@@ -14,12 +14,12 @@ class DomeModelBuild extends TraitBuild{
     }
     public function listTables()
     {
-        $sql='SHOW TABLES';
-        $out=[];
-        foreach ($this->_db->query($sql) as $value) {
-            $out[]=array_shift($value);
-        }
-        return $out;
+//         $sql='SHOW TABLES';
+//         $out=[];
+//         foreach ($this->_db->query($sql) as $value) {
+//             $out[]=array_shift($value);
+//         }
+        return ["user"];//$out;
     }
     public function tablePrefix(){
         return $this->_db->tablePrefix();
@@ -32,6 +32,6 @@ class DomeModelBuild extends TraitBuild{
     //         return substr($model_name, 0,strlen($model_name)-5);
     //     }
         protected function modelName($table){
-            return "ORM".$this->tableToName($table);
+            return "Model".$this->tableToName($table);
         }
 }

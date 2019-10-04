@@ -17,7 +17,7 @@ return array(
 			'database' => 'test',
 			'hostname' => '127.0.0.1',
 			'username' => 'root',
-			'password' => '110',
+			'password' => '',
 			//下面两参数一般在命令行中运行用到
 			'try_re_num' => 0,//连接断开尝试重连次数 -1 不限制,默认为0 不重连
 			'try_re_sleep' => 0,//连接断开重连时暂停秒数,默认为:0 最好不要为0 如果mysql出问题为0可能导致连接数用光问题 

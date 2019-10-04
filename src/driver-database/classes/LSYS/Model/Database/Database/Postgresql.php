@@ -32,6 +32,6 @@ class Postgresql extends  \LSYS\Model\Database\Database {
             $column->setComment(trim($row['adsrc'],"\r\n\t"));
             $columns[]=$column;
         }
-        return new \LSYS\Model\Database\ColumnSet(new ColumnSet($columns), count($pk)==1?array_shift($pk):$pk);
+        return new \LSYS\Model\Database\ColumnSet(new ColumnSet($columns), empty($pk)?null:(count($pk)==1?array_shift($pk):$pk));
     }
 }
