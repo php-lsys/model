@@ -8,7 +8,7 @@
 		"lsys/validation" : "~2.1.0"
 	},
 	"require" : {
-		"lsys/entity" : "~2.1.0",
+		"lsys/entity" : "dev-master",
 		"lsys/core" : "~2.1.0",
 		"lsys/i18n" : "~2.1.0"
 	},
