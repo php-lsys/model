@@ -39,9 +39,9 @@ $entity=$orm->dbBuilder()->wherePk(1)->find();
 print_r($entity->orm1()->asarray());
 print_r($entity->orm2()->asarray());
 print_r($entity->orm3()->findall()->asarray());
-$t=$entity->orm4();
-print_r($t->findall()->asarray());
-print_r($t->countall());
+// $t=$entity->orm4();
+// print_r($t->findall()->asarray());
+// print_r($t->countall());
 print_r($entity->asArray());
 $orm->db()->foundRows();
 print_r($orm->dbBuilder()->reset()->where("id", ">", 30)->findAll()->asArray());
@@ -69,8 +69,9 @@ try{
 //批量插入
 $data=[];
 $b=array(["name"=>"bbb"],["name"=>"ddd"]);
+$e->clear();
 foreach ($b as $bb){
-    $data[]=$e->values($bb)->check()->insertData();
+    $data[]=$e->values($bb)->check()->createData();
 }
 $e->table()->dbBuilder()->insert($data);
 //未查找记录批量更新

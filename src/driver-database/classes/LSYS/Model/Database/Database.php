@@ -3,7 +3,6 @@ namespace LSYS\Model\Database;
 use LSYS\Database\DI;
 use LSYS\Model\Database\Database\Result;
 use LSYS\Entity\Exception;
-use LSYS\Entity\Database\SQLBuilder;
 use LSYS\Entity\Table;
 abstract class Database implements \LSYS\Model\Database {
     /**
@@ -13,6 +12,11 @@ abstract class Database implements \LSYS\Model\Database {
     protected $_use_found_rows=0;
     protected $_is_mysql=0;
     protected $mode=0;
+    /**
+     * 不使用静态,防止model对象多个时覆盖问题
+     * @var \LSYS\Model\Database\Builder
+     */
+    protected $_db_builder;
     public function __construct(\LSYS\Database $db=null){
         $this->_db=$db?$db:DI::get()->db();
         $db=$this->_db;
@@ -23,6 +27,17 @@ abstract class Database implements \LSYS\Model\Database {
             if($db)$clss[]=$db;
         }
         $this->_is_mysql=count(array_intersect($cls, $clss))>0;
+    }
+    /**
+     * {@inheritDoc}
+     * @return \LSYS\Model\Database\Builder
+     */
+    public function builder(Table $table) {
+        $table_name=$table->tableName();
+        if (!isset($this->_db_builder[$table_name])){
+            $this->_db_builder[$table_name]=new \LSYS\Model\Database\Builder($table);
+        }
+        return $this->_db_builder[$table_name];
     }
     public function foundRows() {
         if($this->_is_mysql)$this->_use_found_rows=1;
@@ -162,9 +177,5 @@ abstract class Database implements \LSYS\Model\Database {
     }
     public function expr($value,array $param) {
         return \LSYS\Database::expr($value,$param);
-    }
-    public function sqlBuilder(Table $table)
-    {
-        return new SQLBuilder($table);
     }
 }

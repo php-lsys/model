@@ -4,6 +4,9 @@ use LSYS\Entity\EntitySet;
 use LSYS\Entity\ColumnSet;
 use LSYS\Entity\EntityColumnSet;
 use LSYS\Entity;
+/**
+ * @method \LSYS\Model table() 
+ */
 class Builder extends \LSYS\Entity\Database\Builder{
     /**
      * @var array
@@ -13,6 +16,22 @@ class Builder extends \LSYS\Entity\Database\Builder{
      * @var EntityColumnSet
      */
     protected $_column_set;
+    /**
+     * {@inheritDoc}
+     * @see \LSYS\Entity\Database\Builder::update()
+     */
+    public function update(array $records,$where){
+        if($where instanceof Expr)$where=$where->compile($this->table()->db());
+        return parent::update($records, $where);
+    }
+    /**
+     * {@inheritDoc}
+     * @see \LSYS\Entity\Database\Builder::delete()
+     */
+    public function delete($where){
+        if($where instanceof Expr)$where=$where->compile($this->table()->db());
+        return parent::delete($where);
+    }
     /**
      * 查找一个实体
      * @return Entity
@@ -60,9 +79,9 @@ class Builder extends \LSYS\Entity\Database\Builder{
      * @return EntitySet
      */
     public function queryAll($sql,$column_set=null,array $patch_columns=[]) {
-        $result = $this->db()->query ($sql);
+        $result = $this->table()->db()->query ($sql);
         $column_set=$this->_asEntityColumnSet($column_set,$patch_columns);
-        return new EntitySet($result ,$this->entityClass(),$column_set,$this->table());
+        return new EntitySet($result ,$this->table()->entityClass(),$column_set,$this->table());
     }
     /**
      * 请求一个记录
@@ -73,7 +92,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
      */
     public function queryOne($sql,$column_set=null,array $patch_columns=[]) {
         $entity=(new \ReflectionClass($this->table()->entityClass()))->newInstance($this->table());
-        $res = $this->db()->query ($sql)->current();
+        $res = $this->table()->db()->query ($sql)->current();
         $column_set=$this->_asEntityColumnSet($column_set,$patch_columns);
         if(!is_null($res))$entity->loadData($res,$column_set,true);
         return $entity;
@@ -93,12 +112,12 @@ class Builder extends \LSYS\Entity\Database\Builder{
      */
     public function countAll() {
         $sql = $this->_buildSelect ("count(*) as total");
-        return $this->db()->queryCount($sql,[],"total");
+        return $this->table()->db()->queryCount($sql,[],"total");
     }
     protected function _columnSet() {
         if ($this->_column_set){
-            $columnset=$this->_column_set->asColumnSet($this->tableColumns(),true);
-        }else $columnset=$this->tableColumns();
+            $columnset=$this->_column_set->asColumnSet($this->table()->tableColumns(),true);
+        }else $columnset=$this->table()->tableColumns();
         return $columnset;
     }
     public function reset() {
@@ -106,7 +125,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
         return $this;
     }
     protected function _buildWhereOp($field, $op, $value) {
-        $db=$this->db();
+        $db=$this->table()->db();
         $columnset=$this->_columnSet();
         $columntype=$columnset->getType($field);
         $op = preg_replace ( "/\s+/", ' ', $op );
@@ -160,7 +179,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
         return $where;
     }
     protected function _buildGroupHavingOp($field, $op, $value){
-        $db=$this->db();
+        $db=$this->table()->db();
         $columnset=$this->_columnSet();
         $columntype=$columnset->getType($field);
         return $db->quoteColumn ( $field ) . ' ' . $op . " " . $db->quoteValue ( $value,$columntype ) . " ";
@@ -176,7 +195,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
      * @return string
      */
     protected function _buildGroup() {
-        $db = $this->db();;
+        $db = $this->table()->db();;
         $group = array ();
         $having = '';
         foreach ( $this->_db_pending as $method ) {
@@ -188,7 +207,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
                     break;
                 case 'having' :
                 case 'andHaving' :
-                    $this->_build_grouHhaving_join( call_user_func_array ( array($this,'_buildGroupHavingOp'), $method ['args'] ), 'and' ,$having);
+                    $this->_buildGroupHavingJoin( call_user_func_array ( array($this,'_buildGroupHavingOp'), $method ['args'] ), 'and' ,$having);
                     break;
                 case 'orHaving' :
                     $this->_buildGroupHavingJoin(  call_user_func_array ( array($this,'_buildGroupHavingOp'), $method ['args'] ), 'or' ,$having);
@@ -219,7 +238,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
     protected function _buildJoin() {
         $sql = ' ';
         $on = false;
-        $db = $this->db();;
+        $db = $this->table()->db();;
         foreach ( $this->_db_pending as $method ) {
             switch ($method ['name']) {
                 case 'join' :
@@ -248,14 +267,14 @@ class Builder extends \LSYS\Entity\Database\Builder{
         return $sql;
     }
     protected function _buildOrderOp($field,$order){
-        return ' '.$this->db()->quoteColumn($field).' '.addslashes($order);
+        return ' '.$this->table()->db()->quoteColumn($field).' '.addslashes($order);
     }
     /**
      * 编译查询
      * @return string
      */
     protected function _buildSelect($field,$limit=null) {
-        $db = $this->db();
+        $db = $this->table()->db();
         $distinct = false;
         foreach ( $this->_db_pending as $method ) {
             switch ($method ['name']) {
@@ -265,7 +284,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
             }
         }
         $distinct=$distinct?" DISTINCT ":'';
-        $table=$db->quoteTable($this->tableName());
+        $table=$db->quoteTable($this->table()->tableName());
         $sql="SELECT $distinct ".$field." FROM ".$table;
         $sql .= $this->_buildJoin ();
         
@@ -301,14 +320,14 @@ class Builder extends \LSYS\Entity\Database\Builder{
     }
     protected function _buildField(ColumnSet $columnset) {
         $columns=$columnset->asArray(ColumnSet::TYPE_FIELD);
-        $db = $this->db();
+        $db = $this->table()->db();
         $_field=array();
-        if(array_search($this->primaryKey(), $columns,true)===false){
-            array_unshift($columns, $this->primaryKey());
+        if(array_search($this->table()->primaryKey(), $columns,true)===false){
+            array_unshift($columns, $this->table()->primaryKey());
         }
         foreach ($columns as $value)
         {
-            array_push($_field, $db->quoteColumn(array($this->tableName().".".$value,$value)));
+            array_push($_field, $db->quoteColumn(array($this->table()->tableName().".".$value,$value)));
         }
         $field=implode(",", $_field);
         return $field;
@@ -319,7 +338,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
      * @return static
      */
     public function wherePk($pk){
-        $this->where($this->primaryKey(), "=", $pk);
+        $this->where($this->table()->primaryKey(), "=", $pk);
         return $this;
     }
     /**
@@ -338,7 +357,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
         $this->_db_pending [] = array (
             'name' => 'where',
             'args' => array (
-                strpos($column, ".")===false?$this->tableName().".".$column:$column,
+                strpos($column, ".")===false?$this->table()->tableName().".".$column:$column,
                 $op,
                 $value
             )
@@ -362,7 +381,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
         $this->_db_pending [] = array (
             'name' => 'andWhere',
             'args' => array (
-                strpos($column, ".")===false?$this->tableName().".".$column:$column,
+                strpos($column, ".")===false?$this->table()->tableName().".".$column:$column,
                 $op,
                 $value
             )
@@ -386,7 +405,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
         $this->_db_pending [] = array (
             'name' => 'orWhere',
             'args' => array (
-                strpos($column, ".")===false?$this->tableName().".".$column:$column,
+                strpos($column, ".")===false?$this->table()->tableName().".".$column:$column,
                 $op,
                 $value
             )
@@ -487,7 +506,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
         $this->_db_pending [] = array (
             'name' => 'order_by',
             'args' => array (
-                strpos($column, ".")===false?$this->tableName().".".$column:$column,
+                strpos($column, ".")===false?$this->table()->tableName().".".$column:$column,
                 $direction
             )
         );
@@ -588,9 +607,9 @@ class Builder extends \LSYS\Entity\Database\Builder{
         $this->_db_pending [] = array (
             'name' => 'on',
             'args' => array (
-                strpos($c1, ".")===false?$this->tableName().".".$c1:$c1,
+                strpos($c1, ".")===false?$this->table()->tableName().".".$c1:$c1,
                 $op,
-                strpos($c2, ".")===false?$this->tableName().".".$c2:$c2,
+                strpos($c2, ".")===false?$this->table()->tableName().".".$c2:$c2,
             )
         );
         
@@ -608,7 +627,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
      */
     public function groupBy($columns) {
         // Add pending database call which is executed after query type is determined
-        $columns=strpos($columns, ".")===false?$this->tableName().".".$columns:$columns;
+        $columns=strpos($columns, ".")===false?$this->table()->tableName().".".$columns:$columns;
         $this->_db_pending [] = array (
             'name' => 'group_by',
             'args' => $columns
@@ -648,7 +667,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
         $this->_db_pending [] = array (
             'name' => 'andHaving',
             'args' => array (
-                strpos($column, ".")===false?$this->tableName().".".$column:$column,
+                strpos($column, ".")===false?$this->table()->tableName().".".$column:$column,
                 $op,
                 $value
             )
@@ -673,7 +692,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
         $this->_db_pending [] = array (
             'name' => 'orHaving',
             'args' => array (
-                strpos($column, ".")===false?$this->tableName().".".$column:$column,
+                strpos($column, ".")===false?$this->table()->tableName().".".$column:$column,
                 $op,
                 $value
             )

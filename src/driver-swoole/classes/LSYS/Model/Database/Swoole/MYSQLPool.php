@@ -4,6 +4,7 @@ use LSYS\Entity\Exception;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
 use LSYS\Model\Database\Expr;
+use LSYS\Entity\Table;
 class MYSQLPool implements \LSYS\Model\Database {
     protected $_pool;
     protected $_use_found_rows=0;
@@ -16,6 +17,7 @@ class MYSQLPool implements \LSYS\Model\Database {
     protected $_in_transaction=0;
     protected $_db;
     protected $mode=0;
+    protected $_db_builder;
     public function __construct(\LSYS\Swoole\Coroutine\MySQLPool $pool=null){
         $this->_pool=$pool?$pool:\LSYS\Swoole\Coroutine\MySQLPool\DI::get()->swoole_mysql_pool();
         $this->_query_config=["master*","master*"];
@@ -344,5 +346,12 @@ class MYSQLPool implements \LSYS\Model\Database {
     public function expr($value, array $param)
     {
         return new \LSYS\Model\Database\Swoole\Expr($value, $param);
+    }
+    public function builder(Table $table) {
+        $table_name=$table->tableName();
+        if (!isset($this->_db_builder[$table_name])){
+            $this->_db_builder[$table_name]=new \LSYS\Model\Database\Builder($table);
+        }
+        return $this->_db_builder[$table_name];
     }
 }

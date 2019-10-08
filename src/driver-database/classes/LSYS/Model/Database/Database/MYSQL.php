@@ -22,8 +22,15 @@ class MYSQL extends  \LSYS\Model\Database\Database {
         }
         return new \LSYS\Model\Database\ColumnSet(new ColumnSet($columns), empty($pk)?null:(count($pk)==1?array_shift($pk):$pk));
     }
-    public function sqlBuilder(Table $table)
-    {
-        return new MYSQLBuilder($table);
+    /**
+     * {@inheritDoc}
+     * @return \LSYS\Model\Database\Builder
+     */
+    public function builder(Table $table) {
+        $table_name=$table->tableName();
+        if (!isset($this->_db_builder[$table_name])){
+            $this->_db_builder[$table_name]=new \LSYS\Model\Database\Builder($table);
+        }
+        return $this->_db_builder[$table_name];
     }
 }
