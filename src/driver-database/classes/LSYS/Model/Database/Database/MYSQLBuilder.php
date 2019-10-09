@@ -1,6 +1,6 @@
 <?php
-namespace LSYS\Model\Database;
-class Builder extends \LSYS\Entity\Database\Builder{
+namespace LSYS\Model\Database\Database;
+class MYSQLBuilder extends \LSYS\Entity\Database\Builder{
     
     /**
      * {@inheritDoc}

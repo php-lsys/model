@@ -27,10 +27,6 @@ class MYSQL extends  \LSYS\Model\Database\Database {
      * @return \LSYS\Model\Database\Builder
      */
     public function builder(Table $table) {
-        $table_name=$table->tableName();
-        if (!isset($this->_db_builder[$table_name])){
-            $this->_db_builder[$table_name]=new \LSYS\Model\Database\Builder($table);
-        }
-        return $this->_db_builder[$table_name];
+        return new MYSQLBuilder($table);
     }
 }

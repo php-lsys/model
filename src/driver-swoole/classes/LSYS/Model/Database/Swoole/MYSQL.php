@@ -23,7 +23,6 @@ class MYSQL implements \LSYS\Model\Database {
     protected $_in_transaction=0;
     protected $_db;
     protected $mode=0;
-    protected $_db_builder;
     /**
      * $mysql_callback回调得到MYSQL客户端
      * 参数: $mysql 存在时为上一个无法连接的客户端 $is_master 是否必须是主库
@@ -413,11 +412,7 @@ class MYSQL implements \LSYS\Model\Database {
         return new \LSYS\Model\Database\Swoole\Expr($value, $param);
     }
     public function builder(Table $table) {
-        $table_name=$table->tableName();
-        if (!isset($this->_db_builder[$table_name])){
-            $this->_db_builder[$table_name]=new \LSYS\Model\Database\Builder($table);
-        }
-        return $this->_db_builder[$table_name];
+        return new \LSYS\Model\Database\Builder($table);
     }
 
 }
