@@ -368,9 +368,10 @@ class MYSQL implements \LSYS\Model\Database {
     }
     public function beginTransaction(){
 		if($this->inTransaction()) return true;
-        $this->_in_transaction=true;
         if(!$this->_master_mysql)$this->connect($this->createMysql(true));
-        return $this->_master_mysql->begin();
+        $status=$this->_master_mysql->begin();
+        $this->_in_transaction=true;
+        return $status;
     }
     public function inTransaction(){
         return $this->_in_transaction;
@@ -379,17 +380,20 @@ class MYSQL implements \LSYS\Model\Database {
      * 事务回滚
      */
     public function rollback(){
-        $this->_in_transaction=false;
         if(!$this->_master_mysql)$this->connect($this->createMysql(true));
-        return $this->_master_mysql->rollback();
+        $status=$this->_master_mysql->rollback();
+        $this->_in_transaction=false;
+        return $status;
     }
     /**
      * 事务确认
      */
     public function commit(){
-        $this->_in_transaction=false;
+        
         if(!$this->_master_mysql)$this->connect($this->createMysql(true));
-        return $this->_master_mysql->commit();
+        $status=$this->_master_mysql->commit();
+        $this->_in_transaction=false;
+        return $status;
     }
     public function __destruct() {
         $this->release();

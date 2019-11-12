@@ -302,10 +302,11 @@ class MYSQLPool implements \LSYS\Model\Database {
      */
     public function beginTransaction(){
 		if($this->inTransaction()) return true;
-        $this->_in_transaction=true;
         $this->_db_free();
         $this->_db=$this->_pool->pop($this->_query_config[0]);
-        return $this->_db->mysql()->begin();
+        $status=$this->_db->mysql()->begin();
+        $this->_in_transaction=true;
+        return $status;
     }
     public function inTransaction(){
         return $this->_in_transaction;
@@ -314,20 +315,26 @@ class MYSQLPool implements \LSYS\Model\Database {
      * 事务回滚
      */
     public function rollback(){
-        $this->_in_transaction=false;
-        if(!$this->_db)return false;
+        if(!$this->_db){
+            $this->_in_transaction=false;
+            return false;
+        }
         $state=$this->_db->mysql()->rollback();
         $this->_db_free();
+        $this->_in_transaction=false;
         return $state;
     }
     /**
      * 事务确认
      */
     public function commit(){
-        $this->_in_transaction=false;
-        if(!$this->_db)return false;
+        if(!$this->_db){
+            $this->_in_transaction=false;
+            return false;
+        }
         $state=$this->_db->mysql()->commit();
         $this->_db_free();
+        $this->_in_transaction=false;
         return $state;
     }
     public function __destruct() {
