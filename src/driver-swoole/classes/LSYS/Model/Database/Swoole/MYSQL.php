@@ -145,6 +145,11 @@ class MYSQL implements \LSYS\Model\Database {
                 }
                 break;
             }
+            if($this->_master_mysql==$mysql&&$this->inTransaction()){
+                $e=new Exception($mysql->error,$mysql->errno);
+                $e->setErrorSql($sql);
+                throw $e;
+            }
             if($mysql->errno=='2006'
                 ||$mysql->errno=='2013'
                 ||(isset($mysql->errCode)&&$mysql->errCode=='5001')
