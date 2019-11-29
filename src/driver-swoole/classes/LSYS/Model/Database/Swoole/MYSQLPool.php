@@ -65,15 +65,15 @@ class MYSQLPool implements \LSYS\Model\Database {
     protected function _query($sql,$data){
         $this->_last_query=$sql;
         switch ($this->mode){
-            case \LSYS\Model\Database::QUERY_MASTER_ONCE:
+            case \LSYS\Model\Database::QUERY_SLAVE_ONCE:
                 $this->mode=\LSYS\Model\Database::QUERY_AUTO;
-                $index=0;
+                $index=1;
             break;
-            case \LSYS\Model\Database::QUERY_MASTER_ALL:
-                $index=0;
+            case \LSYS\Model\Database::QUERY_SLAVE_ALL:
+                $index=1;
             break;
             default:
-                $index=1;
+                $index=0;
             break;
         }
         $db=$this->_pool->pop($this->_query_config[$index]);

@@ -5,20 +5,21 @@ use LSYS\Entity\Exception;
 use LSYS\Model\Database\Expr;
 interface Database extends \LSYS\Entity\Database{
     /**
-     * 执行请求时自动选择主从
+     * 默认查询方式,一般都是在主库进行查询
+     * 你可以使用下面的2中查询方式强制在从库上进行查询 
      * @var integer
      */
     const QUERY_AUTO=0;
     /**
-     * 执行请求时一次执行主库,之后变为QUERY_AUTO
+     * 执行强制选择一次请求从库之后自动转换为查询主库,之后变为QUERY_AUTO,注意:主从延时可能导致查询无结果
      * @var integer
      */
-    const QUERY_MASTER_ONCE=1;
+    const QUERY_SLAVE_ONCE=1;
     /**
-     * 执行请求时都选择主库
+     * 执行请求时都强制选择从库进行查询,注意:主从延时可能导致查询无结果,一般用在明确的从库查询情况下使用
      * @var integer
      */
-    const QUERY_MASTER_ALL=2;
+    const QUERY_SLAVE_ALL=2;
     /**
      * 包裹表名 表名 或 array("表名","别名")
      * @param string|array $table 

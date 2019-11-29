@@ -35,7 +35,7 @@ abstract class Database implements \LSYS\Model\Database {
         return $this;
     }
     /**
-     * {@inheritDoc}
+     * 使用此驱动会自动是否选择将查询派发到从库 
      * @see \LSYS\Model\Database::queryMode()
      */
     public function queryMode($mode){
@@ -49,15 +49,15 @@ abstract class Database implements \LSYS\Model\Database {
             $sql=substr_replace($sql,' SQL_CALC_FOUND_ROWS',6,0);
             $this->_use_found_rows=2;
         }
-        if(in_array($this->mode, [\LSYS\Model\Database::QUERY_MASTER_ALL,\LSYS\Model\Database::QUERY_MASTER_ONCE])){
-            $this->_db->getConnectManager()->setQuery(\LSYS\Database\ConnectManager::QUERY_MASTER);
+        if(in_array($this->mode, [\LSYS\Model\Database::QUERY_SLAVE_ALL,\LSYS\Model\Database::QUERY_SLAVE_ONCE])){
+            $this->_db->getConnectManager()->setQuery(\LSYS\Database\ConnectManager::QUERY_SLAVE);
         }else{
             $this->_db->getConnectManager()->setQuery(\LSYS\Database\ConnectManager::QUERY_AUTO);
         }
         try{
             $res=$this->_db->query($sql,$data);
         }catch (\Exception $_e){
-            if($this->mode==\LSYS\Model\Database::QUERY_MASTER_ONCE){
+            if($this->mode==\LSYS\Model\Database::QUERY_SLAVE_ONCE){
                 $this->_db->getConnectManager()->setQuery(\LSYS\Database\ConnectManager::QUERY_AUTO);
                 $this->mode=\LSYS\Model\Database::QUERY_AUTO;
             }
@@ -65,7 +65,7 @@ abstract class Database implements \LSYS\Model\Database {
             $e->setErrorSql($sql);
             throw $e;
         }
-        if($this->mode==\LSYS\Model\Database::QUERY_MASTER_ONCE){
+        if($this->mode==\LSYS\Model\Database::QUERY_SLAVE_ONCE){
             $this->_db->getConnectManager()->setQuery(\LSYS\Database\ConnectManager::QUERY_AUTO);
             $this->mode=\LSYS\Model\Database::QUERY_AUTO;
         }

@@ -34,7 +34,7 @@ class MYSQL implements \LSYS\Model\Database {
     protected function _initCreateMysql(){
         if (is_object($this->_master_mysql)) return $this->_master_mysql;
         if (is_object($this->_mysql)) return $this->_mysql;
-        $master=in_array($this->mode, [\LSYS\Model\Database::QUERY_MASTER_ONCE,\LSYS\Model\Database::QUERY_MASTER_ALL]);
+        $master=!in_array($this->mode, [\LSYS\Model\Database::QUERY_SLAVE_ALL,\LSYS\Model\Database::QUERY_SLAVE_ONCE]);
         return $this->createMysql($master);
     }
     protected function connect($mysql) {
@@ -127,20 +127,19 @@ class MYSQL implements \LSYS\Model\Database {
     protected function _query($sql,$data){
         $this->_last_query=$sql;
         while (true) {
-            if($this->mode==\LSYS\Model\Database::QUERY_MASTER_ONCE
-                ||$this->mode==\LSYS\Model\Database::QUERY_MASTER_ALL){
+            if($this->mode==\LSYS\Model\Database::QUERY_AUTO){
                 if(!$this->_master_mysql)$this->connect($this->createMysql(true));
             }
             $this->connect($this->_initCreateMysql());
-            if($this->mode==\LSYS\Model\Database::QUERY_MASTER_ONCE
-              ||$this->mode==\LSYS\Model\Database::QUERY_MASTER_ALL){
-                $mysql=$this->_master_mysql;
+            if($this->mode==\LSYS\Model\Database::QUERY_SLAVE_ALL
+              ||$this->mode==\LSYS\Model\Database::QUERY_SLAVE_ONCE){
+                  $mysql=$this->_mysql?$this->_mysql:$this->_master_mysql;
             }else{
-                $mysql=$this->_mysql?$this->_mysql:$this->_master_mysql;
+                $mysql=$this->_master_mysql;
             }
             $result=$mysql->prepare($sql);
             if($result&&$result->execute($data)){
-                if($this->mode==\LSYS\Model\Database::QUERY_MASTER_ONCE){
+                if($this->mode==\LSYS\Model\Database::QUERY_SLAVE_ONCE){
                     $this->mode=\LSYS\Model\Database::QUERY_AUTO;
                 }
                 break;
@@ -184,9 +183,6 @@ class MYSQL implements \LSYS\Model\Database {
             $e->setErrorSql($sql);
             throw $e;
         }else{
-            if ($this->mode==\LSYS\Model\Database::QUERY_AUTO) {
-                $this->mode=\LSYS\Model\Database::QUERY_MASTER_ONCE;
-            }
             $this->_query($sql, $data);
             goto succ;
         }
