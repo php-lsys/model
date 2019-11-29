@@ -15,6 +15,10 @@ include_once __DIR__."/boot.php";
 
 //开箱即用方式
 $tm=new \LSYS\Model\Table("user");
+//强制在从库查询一次
+//$tm->db()->queryMode(\LSYS\Model\Database::QUERY_SLAVE_ONCE);
+//强制查询都在从库查询
+//$tm->db()->queryMode(\LSYS\Model\Database::QUERY_SLAVE_ALL);
 var_dump($tm->dbBuilder()->where("id", "=", 10)->find()->asArray());
 
 
