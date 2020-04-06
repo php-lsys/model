@@ -4,13 +4,13 @@
 	"license" : "Apache-2.0",
 	"description" : "lsys module model",
 	"require-dev" : {
-		"lsys/db" : "~0.0.0",
-		"lsys/validation" : "~0.0.0"
+		"lsys/db" : "~0.0.1",
+		"lsys/validation" : "~0.0.1"
 	},
 	"require" : {
 		"lsys/entity" : "dev-master",
-		"lsys/core" : "~0.0.0",
-		"lsys/i18n" : "~0.0.0"
+		"lsys/core" : "~0.0.1",
+		"lsys/i18n" : "~0.0.1"
 	},
 	"autoload" : {
 		"psr-4" : {
@@ -26,9 +26,9 @@
 		]
 	},
 	"suggest": {
-		"lsys/swoole-thrift" : "~0.0.0",
-		"lsys/loger" : "~0.0.0",
-		"lsys/db" : "~0.0.0",
-		"lsys/validation" : "~0.0.0 validrule use it"
+		"lsys/swoole-thrift" : "~0.0.1",
+		"lsys/loger" : "~0.0.1",
+		"lsys/db" : "~0.0.1",
+		"lsys/validation" : "~0.0.1 validrule use it"
     }
 }
