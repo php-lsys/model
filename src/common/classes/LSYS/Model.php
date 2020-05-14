@@ -8,6 +8,9 @@ use LSYS\Model\Traits\ModelTableColumnsFromDB;
 use LSYS\Model\DI;
 use LSYS\Model\Traits\ModelDatabaseBuilder;
 abstract class Model implements Table{
+    public static function factory(){
+        return new static();
+    }
     use ModelTableColumnsFromDB;
     use ModelDatabaseBuilder;
     private $_db;

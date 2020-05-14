@@ -5,6 +5,9 @@ use LSYS\Model;
 class Table extends Model{
     use ModelTableColumnsFromDB;
     protected $_table_name;
+    public static function factory($table_name) {
+        return new static($table_name);
+    }
     public function __construct($table_name){
         $this->_table_name=$table_name;
     }
