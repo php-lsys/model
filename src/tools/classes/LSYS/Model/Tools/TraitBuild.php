@@ -294,6 +294,8 @@ abstract class TraitBuild{
     protected function createBuilderMethod($builder_name){
         return "
     /**
+     * 数据库执行构造器
+     * @rewrite
      * @return $builder_name
      */
     public function dbBuilder() {

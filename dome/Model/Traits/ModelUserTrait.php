@@ -36,6 +36,7 @@ trait ModelUserTrait {
         return "user";
     }
     /**
+     * @rewrite
      * @return \Model\Traits\BuilderUser
      */
     public function dbBuilder() {
