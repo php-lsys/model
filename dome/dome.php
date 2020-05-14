@@ -38,7 +38,6 @@ $e->save();
 print_r($e->asArray());
 $orm=ModelUser::factory();
 
-
 $entity=$orm->dbBuilder()->wherePk(1)->find();
 print_r($entity->orm1()->asarray());
 print_r($entity->orm2()->asarray());

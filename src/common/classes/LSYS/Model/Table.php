@@ -8,7 +8,7 @@ class Table extends Model{
     /**
      * 工厂方法
      * @param string $table_name
-     * @return \LSYS\Model\Table
+     * @return static
      */
     public static function factory($table_name) {
         return new static($table_name);

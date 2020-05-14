@@ -10,7 +10,7 @@ abstract class Model implements Table{
     use ModelTableColumnsFromDB;
     /**
      * 工厂方法
-     * @return \LSYS\Model
+     * @return static
      */
     public static function factory(){
         return new static();
