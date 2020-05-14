@@ -6,13 +6,15 @@ use LSYS\Entity\Table;
 use LSYS\Model\Database;
 use LSYS\Model\Traits\ModelTableColumnsFromDB;
 use LSYS\Model\DI;
-use LSYS\Model\Traits\ModelDatabaseBuilder;
 abstract class Model implements Table{
+    use ModelTableColumnsFromDB;
+    /**
+     * 工厂方法
+     * @return \LSYS\Model
+     */
     public static function factory(){
         return new static();
     }
-    use ModelTableColumnsFromDB;
-    use ModelDatabaseBuilder;
     private $_db;
     /**
      * @return Database
@@ -158,7 +160,7 @@ abstract class Model implements Table{
 	    $this->_relationKeyFill($has_one [$column],'foreign_key',$this);//填充默认对方存本身主键字段名
 	    $col = $has_one [$column] ['foreign_key'];
 	    $val=$entity->pk();
-	    $dbbuilder=$model->dbBuilder();
+	    $dbbuilder=$model->db()->SQLBuilder($this);
 	    $dbbuilder->columnSet($columns);
 	    $dbbuilder->where($col, "=", $val);
 	    $_entity= $dbbuilder->find();
@@ -184,7 +186,7 @@ abstract class Model implements Table{
 	    //			"foreign_key"=>"关系表存本身主键的字段名",
 	    $has_many=$this->hasMany();
 	    $model=$this->_createRelated($has_many, $column);
-	    $dbbuilder=$model->dbBuilder();
+	    $dbbuilder=$model->db()->SQLBuilder($this);
 	    $dbbuilder->columnSet($columns);
 	    $this->_relationKeyFill($has_many [$column],'foreign_key',$this);//默认对方存本身主键字段名 或 中间表存本身主键字段名
 	    
@@ -332,5 +334,12 @@ abstract class Model implements Table{
 	 */
 	public function tableFullName(){
 	    return $this->db()->quoteTable($this->tableName());
+	}
+	/**
+	 * {@inheritDoc}
+	 * @return \LSYS\Model\Database\Builder
+	 */
+	public function dbBuilder() {
+	    return $this->db()->SQLBuilder($this);
 	}
 }

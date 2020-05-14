@@ -293,16 +293,11 @@ abstract class TraitBuild{
      */
     protected function createBuilderMethod($builder_name){
         return "
-    private \$_db_builder;
     /**
      * @return $builder_name
      */
     public function dbBuilder() {
-       \$table_name=\$this->tableName();
-       if (!isset(\$this->_db_builder[\$table_name])){
-           \$this->_db_builder[\$table_name]=new {$builder_name}(\$this);
-       }
-       return \$this->_db_builder[\$table_name];
+       return new {$builder_name}(\$this);
     }
         ";
     }

@@ -2,7 +2,6 @@
 namespace LSYS\Model\Database\Database;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
-use LSYS\Entity\Table;
 class MYSQL extends  \LSYS\Model\Database\Database {
     public function listColumns($table)
     {
@@ -21,12 +20,5 @@ class MYSQL extends  \LSYS\Model\Database\Database {
             $columns[]=$column;
         }
         return new \LSYS\Model\Database\ColumnSet(new ColumnSet($columns), empty($pk)?null:(count($pk)==1?array_shift($pk):$pk));
-    }
-    /**
-     * {@inheritDoc}
-     * @return \LSYS\Model\Database\Builder
-     */
-    public function builder(Table $table) {
-        return new MYSQLBuilder($table);
     }
 }

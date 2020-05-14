@@ -27,7 +27,7 @@ abstract class Database implements \LSYS\Model\Database {
      * {@inheritDoc}
      * @return \LSYS\Model\Database\Builder
      */
-    public function builder(Table $table) {
+    public function SQLBuilder(Table $table) {
         return new \LSYS\Model\Database\Builder($table);
     }
     public function foundRows() {

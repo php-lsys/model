@@ -105,4 +105,10 @@ interface Database extends \LSYS\Entity\Database{
 	 * @return Expr
 	 */
 	public function expr($value,array $param);
+	/**
+	 * {@inheritDoc}
+	 * @see \LSYS\Entity\Database::SQLBuilder()
+	 * @return \LSYS\Model\Database\Builder
+	 */
+	public function SQLBuilder(Table $table);
 }

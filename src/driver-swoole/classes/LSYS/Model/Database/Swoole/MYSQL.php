@@ -416,7 +416,7 @@ class MYSQL implements \LSYS\Model\Database {
     {
         return new \LSYS\Model\Database\Swoole\Expr($value, $param);
     }
-    public function builder(Table $table) {
+    public function SQLBuilder(Table $table) {
         return new \LSYS\Model\Database\Builder($table);
     }
 

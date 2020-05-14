@@ -36,7 +36,7 @@ $e=new EntityUser();
 $e->name="fasdf".rand(0,10000);
 $e->save();
 print_r($e->asArray());
-$orm=new ModelUser();
+$orm=ModelUser::factory();
 
 
 $entity=$orm->dbBuilder()->wherePk(1)->find();
@@ -77,17 +77,17 @@ $e->clear();
 foreach ($b as $bb){
     $data[]=$e->values($bb)->check()->createData();
 }
-$e->table()->dbBuilder()->insert($data);
+$e->table()->dbBuilder()->insert($data)->exec();
 //未查找记录批量更新
 $tm->dbBuilder()->update(array(
     'name'=>'11'
-),$tm->db()->expr("id=:id",[":id"=>"1"]));
+),$tm->db()->expr("id=:id",[":id"=>"1"]))->exec();
 //查找记录后批量更新
-$res=$e->table()->findAll();
+$res=$e->table()->dbBuilder()->findAll();
 foreach ($res as $bb){
     $bb->values($b[0])->check();
 }
-$tm->dbBuilder()->update($res->current()->updateData(),$res);
+$tm->dbBuilder()->update($res->current()->updateData(),$res)->exec();
 
 //批量删除
-$tm->dbBuilder()->delete($tm->db()->expr("name=:bb",[":bb"=>"ddd"]));
+$tm->dbBuilder()->delete($tm->db()->expr("name=:bb",[":bb"=>"ddd"]))->exec();

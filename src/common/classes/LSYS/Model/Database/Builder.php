@@ -7,7 +7,7 @@ use LSYS\Entity;
 /**
  * @method \LSYS\Model table() 
  */
-class Builder extends \LSYS\Entity\Database\Builder{
+class Builder extends \LSYS\Entity\Database\SQLBuilder{
     /**
      * @var array
      */
@@ -18,7 +18,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
     protected $_column_set;
     /**
      * {@inheritDoc}
-     * @see \LSYS\Entity\Database\Builder::update()
+     * @see \LSYS\Entity\Database\SQLBuilder::update()
      */
     public function update(array $records,$where){
         if($where instanceof Expr)$where=$where->compile($this->table()->db());
@@ -26,7 +26,7 @@ class Builder extends \LSYS\Entity\Database\Builder{
     }
     /**
      * {@inheritDoc}
-     * @see \LSYS\Entity\Database\Builder::delete()
+     * @see \LSYS\Entity\Database\SQLBuilder::delete()
      */
     public function delete($where){
         if($where instanceof Expr)$where=$where->compile($this->table()->db());

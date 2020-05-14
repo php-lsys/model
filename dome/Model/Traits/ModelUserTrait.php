@@ -35,17 +35,11 @@ trait ModelUserTrait {
     {
         return "user";
     }
-    
-    private $_db_builder;
     /**
      * @return \Model\Traits\BuilderUser
      */
     public function dbBuilder() {
-       $table_name=$this->tableName();
-       if (!isset($this->_db_builder[$table_name])){
-           $this->_db_builder[$table_name]=new \Model\Traits\BuilderUser($this);
-       }
-       return $this->_db_builder[$table_name];
+       return new \Model\Traits\BuilderUser($this);
     }
         
 }
