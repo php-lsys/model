@@ -5,7 +5,10 @@
 	"description" : "lsys module model",
 	"require-dev" : {
 		"lsys/db" : "~0.0.1",
-		"lsys/validation" : "~0.0.1"
+		"lsys/swoole-thrift" : "~0.0.1",
+		"lsys/validation" : "~0.0.1",
+		"phpunit/phpunit" : "~7.1.5",
+     	"php-coveralls/php-coveralls":"~v2.0.0"
 	},
 	"require" : {
 		"lsys/entity" : "~0.0.1",

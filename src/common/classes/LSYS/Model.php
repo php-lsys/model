@@ -8,13 +8,6 @@ use LSYS\Model\Traits\ModelTableColumnsFromDB;
 use LSYS\Model\DI;
 abstract class Model implements Table{
     use ModelTableColumnsFromDB;
-    /**
-     * 工厂方法
-     * @return static
-     */
-    public static function factory(){
-        return new static();
-    }
     private $_db;
     /**
      * @return Database

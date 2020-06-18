@@ -3,6 +3,9 @@ namespace LSYS\Model;
 use LSYS\Entity\Database\Result;
 use LSYS\Entity\Exception;
 use LSYS\Model\Database\Expr;
+/**
+ * @method \LSYS\Model\Database\Builder SQLBuilder(Table $table);
+ */
 interface Database extends \LSYS\Entity\Database{
     /**
      * 默认查询方式,一般都是在主库进行查询
@@ -105,10 +108,4 @@ interface Database extends \LSYS\Entity\Database{
 	 * @return Expr
 	 */
 	public function expr($value,array $param);
-	/**
-	 * {@inheritDoc}
-	 * @see \LSYS\Entity\Database::SQLBuilder()
-	 * @return \LSYS\Model\Database\Builder
-	 */
-	public function SQLBuilder(Table $table);
 }

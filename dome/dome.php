@@ -36,7 +36,7 @@ $e=new EntityUser();
 $e->name="fasdf".rand(0,10000);
 $e->save();
 print_r($e->asArray());
-$orm=ModelUser::factory();
+$orm=new ModelUser();
 
 $entity=$orm->dbBuilder()->wherePk(1)->find();
 print_r($entity->orm1()->asarray());
