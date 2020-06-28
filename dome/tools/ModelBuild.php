@@ -12,7 +12,7 @@ class DomeModelBuild extends TraitBuild{
     public function db(){
         return new \LSYS\Model\Database\Database\MYSQL($this->_db);
     }
-    public function listTables()
+    public function listTables():array
     {
 //         $sql='SHOW TABLES';
 //         $out=[];
@@ -21,17 +21,17 @@ class DomeModelBuild extends TraitBuild{
 //         }
         return ["user"];//$out;
     }
-    public function tablePrefix(){
+    public function tablePrefix():string{
         return $this->_db->tablePrefix();
     }
-    public function message($table,$msg){
+    public function message(string $table,string $msg){
         echo $table.$msg."\n";
     }
     //yaf model 生成
-    //     protected function modelFileName($model_name){
-    //         return substr($model_name, 0,strlen($model_name)-5);
-    //     }
-        protected function modelName($table){
+//     protected function modelFileName(string $model_name):string{
+//         return substr($model_name, 0,strlen($model_name)-5);
+//     }
+    protected function modelName(string $table):string{
             return "Model".$this->tableToName($table);
         }
 }

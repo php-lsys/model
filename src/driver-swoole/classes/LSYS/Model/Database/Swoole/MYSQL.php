@@ -15,12 +15,12 @@ class MYSQL implements \LSYS\Model\Database {
     protected $_use_found_rows=0;
     protected $_query_config;
     protected $_last_query;
-    protected $_affected_rows;
-    protected $_insert_id='';
+    protected $_affected_rows=0;
+    protected $_insert_id=null;
     protected $_identifier='`';
     protected $_table_prefix='';
     protected $_sleep=0;
-    protected $_in_transaction=0;
+    protected $_in_transaction=false;
     protected $_db;
     protected $mode=0;
     /**
@@ -31,12 +31,20 @@ class MYSQL implements \LSYS\Model\Database {
     public function __construct(callable $mysql_callback=null){
         $this->_mysql_callback=$mysql_callback;
     }
+    /**
+     * 初始化创建一个协程版连接对象
+     * @return \LSYS\Swoole\Coroutine\MySQL
+     */
     protected function _initCreateMysql(){
         if (is_object($this->_master_mysql)) return $this->_master_mysql;
         if (is_object($this->_mysql)) return $this->_mysql;
         $master=!in_array($this->mode, [\LSYS\Model\Database::QUERY_SLAVE_ALL,\LSYS\Model\Database::QUERY_SLAVE_ONCE]);
         return $this->createMysql($master);
     }
+    /**
+     * 连接数据库
+     * @param  $mysql \LSYS\Swoole\Coroutine\MySQL
+     */
     protected function connect($mysql) {
         if($this->_master_mysql==$this->_mysql){//主从相同,有一个连接说明两个都连接
             if($this->_master_mysql_connect||$this->_mysql_connect){
@@ -58,7 +66,7 @@ class MYSQL implements \LSYS\Model\Database {
      * {@inheritDoc}
      * @see \LSYS\Model\Database::queryMode()
      */
-    public function queryMode($mode){
+    public function queryMode(int $mode){
         $this->mode=$mode;
         return $this;
     }
@@ -71,7 +79,7 @@ class MYSQL implements \LSYS\Model\Database {
         $this->_use_found_rows=1;
         return $this;
     }
-    public function query($sql,array $data=[])
+    public function query(string $sql,array $data=[])
     {
         $sql=ltrim($sql);
         if ($this->_use_found_rows==1&&strncasecmp($sql,"select",6)==0){
@@ -81,7 +89,7 @@ class MYSQL implements \LSYS\Model\Database {
         $res=$this->_query($sql,$data);
         return new Result($res);
     }
-    public function queryCount($sql,array $data=[],$total_column='total')
+    public function queryCount(string $sql,array $data=[],string $total_column='total'):int
     {
         if ($this->_use_found_rows==2) {
             $sql="select FOUND_ROWS() as ".addslashes($total_column);
@@ -91,6 +99,11 @@ class MYSQL implements \LSYS\Model\Database {
         $row=$row->fetch();
         return intval($row[$total_column]??0);
     }
+    /**
+     * 重新创建一个对象
+     * @param \LSYS\Swoole\Coroutine\MySQL $mysql
+     * @return \LSYS\Swoole\Coroutine\MySQL
+     */
     protected function reCreateMysql($mysql){
         @$mysql->close();
         if($mysql==$this->_master_mysql){
@@ -100,7 +113,12 @@ class MYSQL implements \LSYS\Model\Database {
         }
         return $mysql;
     }
-    protected function createMysql($is_master=true){
+    /**
+     * 创建一个MYSQL协程版客户端对象
+     * @param boolean $is_master
+     * @return \LSYS\Swoole\Coroutine\MySQL
+     */
+    protected function createMysql(bool $is_master=true){
         if (is_callable($this->_mysql_callback)){
             $mysql=call_user_func($this->_mysql_callback,(!$is_master&&$this->_mysql)?$this->_mysql:$this->_master_mysql,$is_master);
             assert($mysql instanceof \LSYS\Swoole\Coroutine\MySQL);
@@ -124,10 +142,16 @@ class MYSQL implements \LSYS\Model\Database {
         $this->_sleep=isset($config['sleep'])?intval($config['sleep']):0;
         return $mysql;
     }
-    protected function _query($sql,$data){
+    /**
+     * 执行SQL
+     * @param string $sql
+     * @param array $data
+     * @throws \LSYS\Entity\Exception
+     */
+    protected function _query(string $sql,$data){
         $this->_last_query=$sql;
         while (true) {
-            if($this->mode==\LSYS\Model\Database::QUERY_AUTO){
+            if($this->mode==\LSYS\Model\Database::QUERY_MUST_MASTER){
                 if(!$this->_master_mysql)$this->connect($this->createMysql(true));
             }
             $this->connect($this->_initCreateMysql());
@@ -140,7 +164,7 @@ class MYSQL implements \LSYS\Model\Database {
             $result=$mysql->prepare($sql);
             if($result&&$result->execute($data)){
                 if($this->mode==\LSYS\Model\Database::QUERY_SLAVE_ONCE){
-                    $this->mode=\LSYS\Model\Database::QUERY_AUTO;
+                    $this->mode=\LSYS\Model\Database::QUERY_MUST_MASTER;
                 }
                 break;
             }
@@ -171,7 +195,11 @@ class MYSQL implements \LSYS\Model\Database {
         }
         return $result;
     }
-    public function exec($sql,array $data=[])
+    /**
+     * {@inheritDoc}
+     * @see \LSYS\Entity\Database::exec()
+     */
+    public function exec(string $sql,array $data=[]):bool
     {
         if (!$this->_master_mysql)$this->connect($this->createMysql(true));
         $this->_last_query=$sql;
@@ -191,7 +219,11 @@ class MYSQL implements \LSYS\Model\Database {
         $this->_affected_rows=$mysql->affected_rows;
         return true;
     }
-    public function listColumns($table)
+    /**
+     * {@inheritDoc}
+     * @see \LSYS\Model\Database::listColumns()
+     */
+    public function listColumns(string $table)
     {
         $sql='SHOW FULL COLUMNS FROM '.$table;
         $result=$this->_query($sql,[]);
@@ -210,11 +242,11 @@ class MYSQL implements \LSYS\Model\Database {
         }
         return new \LSYS\Model\Database\ColumnSet(new ColumnSet($columns), count($pk)==1?array_shift($pk):$pk);
     }
-    public function insertId()
+    public function insertId():?int
     {
         return $this->_insert_id;
     }
-    public function quoteColumn($column)
+    public function quoteColumn($column):string
     {
         if(empty($column)) return '';
         $this->_initCreateMysql();
@@ -263,7 +295,7 @@ class MYSQL implements \LSYS\Model\Database {
         }
         return $column;
     }
-    public function quoteTable($table)
+    public function quoteTable($table):string
     {
         $this->_initCreateMysql();
         // Identifiers are escaped by repeating them
@@ -312,7 +344,7 @@ class MYSQL implements \LSYS\Model\Database {
         }
         return $table;
     }
-    public function quoteValue($value, $column_type=null)
+    public function quoteValue($value, $column_type=null):string
     {
         if ($value === NULL) {
             return 'NULL';
@@ -354,28 +386,28 @@ class MYSQL implements \LSYS\Model\Database {
             return "'".addslashes($value)."'";
         }
     }
-    public function lastQuery()
+    public function lastQuery():?string
     {
         return $this->_last_query;
     }
-    public function affectedRows()
+    public function affectedRows():int
     {
         return $this->_affected_rows;
     }
-    public function beginTransaction(){
+    public function beginTransaction():bool{
 		if($this->inTransaction()) return true;
         if(!$this->_master_mysql)$this->connect($this->createMysql(true));
         $status=$this->_master_mysql->begin();
         $this->_in_transaction=true;
         return $status;
     }
-    public function inTransaction(){
+    public function inTransaction():bool{
         return $this->_in_transaction;
     }
     /**
      * 事务回滚
      */
-    public function rollback(){
+    public function rollback():bool{
         if(!$this->_master_mysql)$this->connect($this->createMysql(true));
         $status=$this->_master_mysql->rollback();
         $this->_in_transaction=false;
@@ -384,7 +416,7 @@ class MYSQL implements \LSYS\Model\Database {
     /**
      * 事务确认
      */
-    public function commit(){
+    public function commit():bool{
         
         if(!$this->_master_mysql)$this->connect($this->createMysql(true));
         $status=$this->_master_mysql->commit();
@@ -394,7 +426,7 @@ class MYSQL implements \LSYS\Model\Database {
     public function __destruct() {
         $this->release();
     }
-    public function release() {
+    public function release():void {
         if($this->_in_transaction){//事务发生,直接回滚.
             $this->rollback();
         }

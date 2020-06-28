@@ -3,7 +3,11 @@ namespace LSYS\Model\Database\Database;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
 class Sqlite extends  \LSYS\Model\Database\Database {
-    public function listColumns($table)
+    /**
+     * {@inheritDoc}
+     * @see \LSYS\Model\Database::listColumns()
+     */
+    public function listColumns(string  $table)
     {
         $columns=[];
         $pk=[];

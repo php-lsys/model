@@ -3,7 +3,11 @@ namespace LSYS\Model\Database\Database;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
 class Postgresql extends  \LSYS\Model\Database\Database {
-    public function listColumns($table)
+    /**
+     * {@inheritDoc}
+     * @see \LSYS\Model\Database::listColumns()
+     */
+    public function listColumns(string  $table)
     {
         $sql="SELECT
 		pg_attribute.attname as attname,pg_attribute.typname as typname,

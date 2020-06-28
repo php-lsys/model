@@ -1,0 +1,21 @@
+language: php
+services:
+  - mysql
+php:
+  - 7.1
+  - 7.2
+  - 7.3
+  
+before_install:
+  - sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;"
+  - sudo mysql -e "create database test;use test;CREATE TABLE IF NOT EXISTS l_order (id int(11) NOT NULL AUTO_INCREMENT,sn char(12) NOT NULL,title varchar(32) NOT NULL, add_time int(11) NOT NULL,PRIMARY KEY (id)) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;CREATE TABLE l_config (id int(11) NOT NULL AUTO_INCREMENT,name varchar(254) CHARACTER SET latin1 DEFAULT NULL COMMENT 'config name',value varchar(1024) CHARACTER SET latin1 DEFAULT '' COMMENT 'config value',section tinyint(4) DEFAULT NULL COMMENT 'Node number',PRIMARY KEY (id),KEY newtable_name_idx (name));"
+  - sudo service mysql restart
+  
+before_script:
+  - composer install --dev
+  - cd tests
+script: 
+  - ../vendor/bin/phpunit -v
+after_script:
+  - cd ..
+  - travis_retry vendor/bin/php-coveralls -x tests/report/clover.xml -o tests/report/coveralls.json -v

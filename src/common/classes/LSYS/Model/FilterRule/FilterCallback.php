@@ -7,14 +7,14 @@ class FilterCallback implements FilterRule{
     protected $_param;
     /**
      * 回调方式实现过滤器
-     * @param string $fun 函数名
+     * @param string|array $fun 函数名
      * @param array $param 参数格式
      */
     public function __construct($fun,$param=array(":value")){
         $this->_fun=$fun;
         $this->_param=$param;
     }
-    public function filter(Entity $entity, $value, $field)
+    public function filter(Entity $entity, $value,string $field)
     {
         $_bound = array (
             ':field' => $field,

@@ -78,7 +78,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      * @param array $patch_columns
      * @return EntitySet
      */
-    public function queryAll($sql,$column_set=null,array $patch_columns=[]) {
+    public function queryAll(string $sql,$column_set=null,array $patch_columns=[]) {
         $result = $this->table()->db()->query ($sql);
         $column_set=$this->_asEntityColumnSet($column_set,$patch_columns);
         return new EntitySet($result ,$this->table()->entityClass(),$column_set,$this->table());
@@ -90,7 +90,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      * @param array $patch_columns
      * @return \LSYS\Entity
      */
-    public function queryOne($sql,$column_set=null,array $patch_columns=[]) {
+    public function queryOne(string $sql,$column_set=null,array $patch_columns=[]) {
         $entity=(new \ReflectionClass($this->table()->entityClass()))->newInstance($this->table());
         $res = $this->table()->db()->query ($sql)->current();
         $column_set=$this->_asEntityColumnSet($column_set,$patch_columns);
@@ -110,7 +110,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      * 统计一批记录数量
      * @return number
      */
-    public function countAll() {
+    public function countAll():int{
         $sql = $this->_buildSelect ("count(*) as total");
         return $this->table()->db()->queryCount($sql,[],"total");
     }
@@ -124,7 +124,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
         $this->_db_pending = array ();
         return $this;
     }
-    protected function _buildWhereOp($field, $op, $value) {
+    protected function _buildWhereOp($field, string $op, $value):string {
         $db=$this->table()->db();
         $columnset=$this->_columnSet();
         $columntype=$columnset->getType($field);
@@ -140,8 +140,9 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
                 if(empty($op)&&empty($value)) return $db->quoteColumn ( $field );
                 return $db->quoteColumn ( $field ) . ' ' . $op . " " . $db->quoteValue ( $value,$columntype ) . " ";
         }
+        return '';
     }
-    protected function _buildWhereJoin($where_fragment, $op,&$where) {
+    protected function _buildWhereJoin($where_fragment,string  $op,&$where) {
         $swhere = trim ( $where );
         if (empty ( $swhere ) || substr ( $swhere, - 1, 1 ) == '(') $where .= ' ' . $where_fragment . ' ';
         else $where .= ' ' . $op . ' ' . $where_fragment . ' ';
@@ -151,7 +152,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *
      * @return string
      */
-    protected function _buildWhere() {
+    protected function _buildWhere():string {
         $where = ' ';
         foreach ( $this->_db_pending as $method ) {
             switch ($method ['name']) {
@@ -178,13 +179,13 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
         }
         return $where;
     }
-    protected function _buildGroupHavingOp($field, $op, $value){
+    protected function _buildGroupHavingOp($field, string $op, $value):string{
         $db=$this->table()->db();
         $columnset=$this->_columnSet();
         $columntype=$columnset->getType($field);
         return $db->quoteColumn ( $field ) . ' ' . $op . " " . $db->quoteValue ( $value,$columntype ) . " ";
     }
-    protected function _buildGroupHavingJoin($having_fragment, $op,&$having){
+    protected function _buildGroupHavingJoin($having_fragment, string $op,&$having){
         $shaving = trim ( $having );
         if (empty ( $shaving ) || substr ( $shaving, - 1, 1 ) == '(') $having .= ' ' . $having_fragment . ' ';
         else $having .= ' ' . $op . ' ' . $having_fragment . ' ';
@@ -194,7 +195,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *
      * @return string
      */
-    protected function _buildGroup() {
+    protected function _buildGroup():string {
         $db = $this->table()->db();;
         $group = array ();
         $having = '';
@@ -235,7 +236,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *
      * @return string
      */
-    protected function _buildJoin() {
+    protected function _buildJoin():string{
         $sql = ' ';
         $on = false;
         $db = $this->table()->db();;
@@ -266,14 +267,14 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
         }
         return $sql;
     }
-    protected function _buildOrderOp($field,$order){
+    protected function _buildOrderOp($field,$order):string{
         return ' '.$this->table()->db()->quoteColumn($field).' '.addslashes($order);
     }
     /**
      * 编译查询
      * @return string
      */
-    protected function _buildSelect($field,$limit=null) {
+    protected function _buildSelect($field,$limit=null):string {
         $db = $this->table()->db();
         $distinct = false;
         foreach ( $this->_db_pending as $method ) {
@@ -299,9 +300,8 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
                     break;
                 case 'limit' :
                     if($limit==null){
-                        
                         $_limit=$method ['args'] [0];
-                        if($_limit===false||$_limit===null) $limit = null;
+                        if($_limit===null) $limit = null;
                         else $limit = " limit " . intval($_limit);
                     }
                     break;
@@ -318,12 +318,21 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
         $group = $this->_buildGroup ();
         return $sql . $where . $group . $order . $limit . $offset;
     }
-    protected function _buildField(ColumnSet $columnset) {
+    protected function _buildField(ColumnSet $columnset):string {
         $columns=$columnset->asArray(ColumnSet::TYPE_FIELD);
         $db = $this->table()->db();
         $_field=array();
-        if(array_search($this->table()->primaryKey(), $columns,true)===false){
-            array_unshift($columns, $this->table()->primaryKey());
+        $pkname=$this->table()->primaryKey();
+        if (!is_array($pkname)) {
+            if(array_search($pkname, $columns,true)===false){
+                array_unshift($columns, $pkname);
+            }
+        }else{
+            foreach ($pkname as $tname){
+                if(array_search($tname, $columns,true)===false){
+                    array_unshift($columns, $tname);
+                }
+            }
         }
         foreach ($columns as $value)
         {
@@ -338,7 +347,14 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      * @return static
      */
     public function wherePk($pk){
-        $this->where($this->table()->primaryKey(), "=", $pk);
+        $pkname=$this->table()->primaryKey();
+        if (is_array($pkname)) {
+            foreach ($pkname as $name){
+                $this->where($name, "=", $pk[$name]??null);
+            }
+        }else{
+            $this->where($pkname, "=", $pk);
+        }
         return $this;
     }
     /**
@@ -352,7 +368,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	column value
      * @return $this
      */
-    public function where($column, $op, $value) {
+    public function where($column,string  $op, $value) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'where',
@@ -376,7 +392,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	column value
      * @return $this
      */
-    public function andWhere($column, $op, $value) {
+    public function andWhere($column, string $op, $value) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'andWhere',
@@ -400,7 +416,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	column value
      * @return $this
      */
-    public function orWhere($column, $op, $value) {
+    public function orWhere($column, string $op, $value) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'orWhere',
@@ -501,7 +517,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	direction of sorting
      * @return $this
      */
-    public function orderBy($column, $direction = NULL) {
+    public function orderBy($column,?string $direction = NULL) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'order_by',
@@ -540,7 +556,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	enable or disable distinct columns
      * @return $this
      */
-    public function distinct($value = true) {
+    public function distinct(bool $value = true) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'distinct',
@@ -558,7 +574,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	starting result number
      * @return $this
      */
-    public function offset($number) {
+    public function offset(int $number) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'offset',
@@ -579,7 +595,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	join type (LEFT, RIGHT, INNER, etc)
      * @return $this
      */
-    public function join($table, $type = NULL) {
+    public function join($table, string $type = NULL) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'join',
@@ -602,7 +618,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	column name or array($column, $alias) or object
      * @return $this
      */
-    public function on($c1, $op, $c2) {
+    public function on($c1, string $op, $c2) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'on',
@@ -647,7 +663,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	column value
      * @return $this
      */
-    public function having($column, $op, $value = NULL) {
+    public function having($column,string $op, $value = NULL) {
         return $this->andHaving ( $column, $op, $value );
     }
     
@@ -662,7 +678,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	column value
      * @return $this
      */
-    public function andHaving($column, $op, $value = NULL) {
+    public function andHaving($column,string $op, $value = NULL) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'andHaving',
@@ -687,7 +703,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	column value
      * @return $this
      */
-    public function orHaving($column, $op, $value = NULL) {
+    public function orHaving($column, string $op, $value = NULL) {
         // Add pending database call which is executed after query type is determined
         $this->_db_pending [] = array (
             'name' => 'orHaving',

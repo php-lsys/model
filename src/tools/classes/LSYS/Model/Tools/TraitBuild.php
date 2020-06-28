@@ -23,11 +23,11 @@ abstract class TraitBuild{
      * @return static
      */
     public function setCreateStatus(
-        $is_create_model=1,
-        $is_create_entity=1,
-        $is_create_model_trait=1,
-        $is_create_entity_trait=1,
-        $is_create_builder=1
+        bool $is_create_model=true,
+        bool $is_create_entity=true,
+        bool $is_create_model_trait=true,
+        bool $is_create_entity_trait=true,
+        bool $is_create_builder=true
     ){
         $this->_create_entity=$is_create_entity;
         $this->_create_model=$is_create_model;
@@ -41,24 +41,24 @@ abstract class TraitBuild{
      * @param string $table
      * @param string $msg
      */
-    public function message($table,$msg){
+    public function message(string $table,string $msg):void{
         //your output
     }
     /**
      * 设置保存目录
      * @param string $dir
-     * @return \LSYS\Model\Tools\TraitBuild
+     * @return $this
      */
-    public function setSaveDir($dir){
+    public function setSaveDir(string $dir){
         $this->_dir=$dir;
         return $this;
     }
     /**
      * 设置命名空间
      * @param string $namespace
-     * @return \LSYS\Model\Tools\TraitBuild
+     * @return $this
      */
-    public function setNamespace($namespace){
+    public function setNamespace(string $namespace){
         $this->_namespace=$namespace;
         return $this;
     }
@@ -67,14 +67,14 @@ abstract class TraitBuild{
      * 不希望直接继承\LSYS\Model 时重写此方法
      * @return string
      */
-    public function parentModelClassName(){
+    public function parentModelClassName():string{
         return \LSYS\Model::class;
     }
     /**
      * 数据库请求构造器的父类名
      * @return string
      */
-    public function parentBuilderClassName(){
+    public function parentBuilderClassName():string{
         return \LSYS\Model\Database\Builder::class;
     }
     /**
@@ -82,7 +82,7 @@ abstract class TraitBuild{
      * 不希望直接继承\LSYS\Model\Entity 时重写此方法
      * @return string
      */
-    public function parentEntityClassName(){
+    public function parentEntityClassName():string{
         return \LSYS\Model\Entity::class;
     }
     /**
@@ -90,10 +90,10 @@ abstract class TraitBuild{
      * @param string $table
      * @return string
      */
-    protected function tableToName($table){
+    protected function tableToName(string $table):string{
         return str_replace(" ",'',ucwords(str_replace("_",' ', $table)));
     }
-    private function replaceTpl($tpl,$name,$val,$warp=false){
+    private function replaceTpl(string $tpl,string $name,?string $val,bool $warp=false):string {
         $name="__LSYS_TPL_{$name}__";
         if ($warp)$name="/*{$name}*/";
         $tpl=str_replace($name,$val,$tpl);
@@ -107,7 +107,7 @@ abstract class TraitBuild{
      * @param string $table
      * @return string
      */
-    protected function modelName($table){
+    protected function modelName(string $table):string {
         return 'Model'.$this->tableToName($table);
     }
     /**
@@ -115,7 +115,7 @@ abstract class TraitBuild{
      * @param string $model_name
      * @return string
      */
-    protected function modelFileName($model_name){
+    protected function modelFileName(string $model_name):string {
         return $model_name;
     }
     /**
@@ -123,7 +123,7 @@ abstract class TraitBuild{
      * @param string $builder_name
      * @return string
      */
-    protected function builderName($table){
+    protected function builderName(string $table):string {
         return 'Builder'.$this->tableToName($table);
     }
     /**
@@ -131,7 +131,7 @@ abstract class TraitBuild{
      * @param string $builder_name
      * @return string
      */
-    protected function builderFileName($builder_name){
+    protected function builderFileName(string $builder_name):string {
         return $builder_name;
     }
     /**
@@ -139,7 +139,7 @@ abstract class TraitBuild{
      * @param string $table
      * @return string
      */
-    protected function modelTraitName($table){
+    protected function modelTraitName(string $table):string {
         return 'Model'.$this->tableToName($table)."Trait";
     }
     /**
@@ -147,7 +147,7 @@ abstract class TraitBuild{
      * @param string $entity_name
      * @return string
      */
-    protected function entityFileName($entity_name){
+    protected function entityFileName(string $entity_name):string {
         return $entity_name;
     }
     /**
@@ -155,7 +155,7 @@ abstract class TraitBuild{
      * @param string $table
      * @return string
      */
-    protected function entityName($table){
+    protected function entityName(string $table):string {
         return 'Entity'.$this->tableToName($table);
     }
     /**
@@ -163,42 +163,42 @@ abstract class TraitBuild{
      * @param string $table
      * @return string
      */
-    protected function entityTraitName($table){
+    protected function entityTraitName(string $table):string {
         return 'Entity'.$this->tableToName($table)."Trait";
     }
     /**
      * model片段模板
      * @return string
      */
-    protected function traitModelTpl(){
+    protected function traitModelTpl():string {
         return file_get_contents(__DIR__.'/../../../../tpls/TraitModelTpl.php');
     }
     /**
      * entity片段模板
      * @return string
      */
-    protected function traitEntityTpl(){
+    protected function traitEntityTpl():string {
         return file_get_contents(__DIR__.'/../../../../tpls/TraitEntityTpl.php');
     }
     /**
      * model模板
      * @return string
      */
-    protected function modelTpl(){
+    protected function modelTpl():string {
         return file_get_contents(__DIR__.'/../../../../tpls/ModelTpl.php');
     }
     /**
      * entity模板
      * @return string
      */
-    protected function entityTpl(){
+    protected function entityTpl():string {
         return file_get_contents(__DIR__.'/../../../../tpls/EntityTpl.php');
     }
     /**
      * builder模板
      * @return string
      */
-    protected function builderTpl(){
+    protected function builderTpl():string {
         return file_get_contents(__DIR__.'/../../../../tpls/BuilderTpl.php');
     }
     /**
@@ -207,7 +207,7 @@ abstract class TraitBuild{
      * @param string $model_name
      * @return string
      */
-    protected function createEntityTraitDoc(ColumnSet $set,$model_name){
+    protected function createEntityTraitDoc(ColumnSet $set,string $model_name):string {
         $doc=[];
         foreach ($set as $column){
             assert($column instanceof Column);
@@ -236,7 +236,7 @@ abstract class TraitBuild{
      * @param string $entity_name
      * @return string
      */
-    protected function createBuilderDoc($entity_name,$model_name){
+    protected function createBuilderDoc(string $entity_name,string $model_name):string {
         $doc=[];
         $doc[]=" * @method {$model_name} table()";
         $doc[]=" * @method {$entity_name} find()";
@@ -258,7 +258,7 @@ abstract class TraitBuild{
      * @param ColumnSet $set
      * @return string
      */
-    protected function createEntityTraitColumnCode(ColumnSet $set){
+    protected function createEntityTraitColumnCode(ColumnSet $set):string {
         $column_name=\LSYS\Entity\Column::class;
         $code=[];
         foreach ($set as $column){
@@ -291,7 +291,7 @@ abstract class TraitBuild{
      * @param string $builder_name
      * @return string
      */
-    protected function createBuilderMethod($builder_name){
+    protected function createBuilderMethod(string $builder_name):string {
         return "
     /**
      * 数据库执行构造器
@@ -423,7 +423,6 @@ abstract class TraitBuild{
                  file_put_contents($entity_file, $tpl);
             }
             unset($tpl);
-            
             $this->message($table,"create success");
         }
     }
@@ -431,7 +430,7 @@ abstract class TraitBuild{
      * 表前缀
      * @return string
      */
-    protected function tablePrefix(){
+    protected function tablePrefix():string {
         return '';
     }
     /**
@@ -443,5 +442,5 @@ abstract class TraitBuild{
      * 得到指定数据的表
      * @return array
      */
-    abstract protected function listTables();
+    abstract protected function listTables():array;
 }

@@ -17,9 +17,9 @@ class ValidEmail implements ValidRule{
     protected $_type;
     protected $_allow_empty;
     /**
-     * @param bool $dns 是否检测DNS
+     * @param int $type 是否检测DNS
      */
-    public function __construct($type=false,$allow_empty=true) {
+    public function __construct(int $type,bool $allow_empty=true) {
         $this->_type=$type;
         $this->_allow_empty=$allow_empty;
         if(!class_exists(\LSYS\Validation\Valid::class)){
@@ -29,7 +29,7 @@ class ValidEmail implements ValidRule{
     /**
      * @return bool
      */
-    public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,string $field,$value,string $label,Entity $entity,array $check_data) {
         $param=array(
             ":label"=>$label,
             ":value"=>$value,
@@ -78,7 +78,7 @@ class ValidEmail implements ValidRule{
             break;
         }
     }
-    public function allowEmpty()
+    public function allowEmpty():bool
     {
         return $this->_allow_empty;
     }

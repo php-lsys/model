@@ -24,11 +24,11 @@ trait __LSYS_TPL_TRAIT_MODEL__ {
     public function primaryKey() {
         return /*__LSYS_TPL_PK__*/;
     }
-    public function entityClass()
+    public function entityClass():string
     {
         return /*__LSYS_TPL_ENTITY_CLASS__*/;
     }
-    public function tableName()
+    public function tableName():string
     {
         return "__LSYS_TPL_TABLE_NAME__";
     }

@@ -10,17 +10,17 @@ class ValidEquals implements ValidRule{
     /**
      * 等于某值
      * $in_array 为true时,$value为数组,表示是其中一个即可
-     * @param string $value
+     * @param string|array $value
      * @param bool $in_array
      */
-    public function __construct($value,$in_array=true) {
+    public function __construct($value,bool $in_array=true) {
         $this->_value=$value;
         $this->_in_array=$in_array;
     }
     /**
      * @return bool
      */
-    public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,string $field,$value,string $label,Entity $entity,array $check_data) {
         $values=is_array($this->_value)?$this->_value:[$this->_value];
         $param=array(
           ":label"=>$label,  
@@ -37,7 +37,7 @@ class ValidEquals implements ValidRule{
             }
         }
     }
-    public function allowEmpty()
+    public function allowEmpty():bool
     {
         return false;
     }

@@ -13,6 +13,6 @@ abstract class Entity extends \LSYS\Entity{
      * 返回ORM名
      * @return string
      */
-    abstract public function tableClass();
+    abstract public function tableClass():string;
 }
 

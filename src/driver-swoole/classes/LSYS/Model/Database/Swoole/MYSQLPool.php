@@ -10,11 +10,11 @@ class MYSQLPool implements \LSYS\Model\Database {
     protected $_use_found_rows=0;
     protected $_query_config;
     protected $_last_query;
-    protected $_affected_rows;
-    protected $_insert_id='';
+    protected $_affected_rows=0;
+    protected $_insert_id=null;
     protected $_identifier='`';
     protected $_table_prefix='';
-    protected $_in_transaction=0;
+    protected $_in_transaction=false;
     protected $_db;
     protected $mode=0;
     public function __construct(\LSYS\Swoole\Coroutine\MySQLPool $pool=null){
@@ -26,10 +26,14 @@ class MYSQLPool implements \LSYS\Model\Database {
      * {@inheritDoc}
      * @see \LSYS\Model\Database::queryMode()
      */
-    public function queryMode($mode){
+    public function queryMode(int $mode){
         $this->mode=$mode;
         return $this;
     }
+    /**
+     * 使用SQL_CALC_FOUND_ROWS查询结果数量
+     * @return $this
+     */
     public function foundRows() {
         $this->_use_found_rows=1;
         return $this;
@@ -43,7 +47,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         $this->_query_config=[$master,$read];
         return $this;
     }
-    public function query($sql,array $data=[])
+    public function query(string $sql,array $data=[])
     {
         $sql=ltrim($sql);
         if ($this->_use_found_rows==1&&strncasecmp($sql,"select",6)==0){
@@ -53,7 +57,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         $res=$this->_query($sql,$data);
         return new Result($res);
     }
-    public function queryCount($sql,array $data=[],$total_column='total')
+    public function queryCount(string $sql,array $data=[],string $total_column='total'):int
     {
         if ($this->_use_found_rows==2) {
             $sql="select FOUND_ROWS() as ".addslashes($total_column);
@@ -62,11 +66,17 @@ class MYSQLPool implements \LSYS\Model\Database {
         $row=$this->_query($sql,$data);
         return intval($row->get($total_column,0));
     }
+    /**
+     * 执行SQL
+     * @param string $sql
+     * @param mixed $data
+     * @throws \LSYS\Entity\Exception
+     */
     protected function _query($sql,$data){
         $this->_last_query=$sql;
         switch ($this->mode){
             case \LSYS\Model\Database::QUERY_SLAVE_ONCE:
-                $this->mode=\LSYS\Model\Database::QUERY_AUTO;
+                $this->mode=\LSYS\Model\Database::QUERY_MUST_MASTER;
                 $index=1;
             break;
             case \LSYS\Model\Database::QUERY_SLAVE_ALL:
@@ -94,7 +104,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         $this->_pool->push($db);
         return $row;
     }
-    public function exec($sql,array $data=[])
+    public function exec(string $sql,array $data=[]):bool
     {
         $this->_last_query=$sql;
         if ($this->inTransaction()) {
@@ -127,9 +137,9 @@ class MYSQLPool implements \LSYS\Model\Database {
             $this->_affected_rows=$db->mysql()->affected_rows;
             $this->_pool->push($db);
         }
-        return $res;
+        return !empty($res);
     }
-    public function listColumns($table)
+    public function listColumns(string $table)
     {
         $sql='SHOW FULL COLUMNS FROM '.$table;
         $result=$this->_query($sql);
@@ -148,11 +158,11 @@ class MYSQLPool implements \LSYS\Model\Database {
         }
         return new \LSYS\Model\Database\ColumnSet(new ColumnSet($columns), count($pk)==1?array_shift($pk):$pk);
     }
-    public function insertId()
+    public function insertId():?int
     {
         return $this->_insert_id;
     }
-    public function quoteColumn($column)
+    public function quoteColumn($column):string
     {
         if(empty($column)) return '';
         // Identifiers are escaped by repeating them
@@ -200,7 +210,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         }
         return $column;
     }
-    public function quoteTable($table)
+    public function quoteTable($table):string
     {
         // Identifiers are escaped by repeating them
         $escaped_identifier = $this->_identifier . $this->_identifier;
@@ -248,7 +258,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         }
         return $table;
     }
-    public function quoteValue($value, $column_type=null)
+    public function quoteValue($value, $column_type=null):string
     {
         static $no_esc;
         if ($value === NULL) {
@@ -289,18 +299,18 @@ class MYSQLPool implements \LSYS\Model\Database {
         }
         return "'".addslashes($value)."'";
     }
-    public function lastQuery()
+    public function lastQuery():?string
     {
         return $this->_last_query;
     }
-    public function affectedRows()
+    public function affectedRows():int
     {
         return $this->_affected_rows;
     }
     /**
      * 事务开始[注意:开始后一定要调用回滚或确认,否则有连接池泄漏风险]
      */
-    public function beginTransaction(){
+    public function beginTransaction():bool{
 		if($this->inTransaction()) return true;
         $this->_db_free();
         $this->_db=$this->_pool->pop($this->_query_config[0]);
@@ -308,13 +318,13 @@ class MYSQLPool implements \LSYS\Model\Database {
         $this->_in_transaction=true;
         return $status;
     }
-    public function inTransaction(){
+    public function inTransaction():bool{
         return $this->_in_transaction;
     }
     /**
      * 事务回滚
      */
-    public function rollback(){
+    public function rollback():bool{
         if(!$this->_db){
             $this->_in_transaction=false;
             return false;
@@ -327,7 +337,7 @@ class MYSQLPool implements \LSYS\Model\Database {
     /**
      * 事务确认
      */
-    public function commit(){
+    public function commit():bool{
         if(!$this->_db){
             $this->_in_transaction=false;
             return false;
@@ -344,7 +354,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         if($this->_db)$this->_pool->push($this->_db);
         $this->_db=null;
     }
-    public function release() {
+    public function release():void {
         //因为使用连接池资源.这里只有在事务时才会占用资源
         //事务进行时有调用,无法确定是否是事务完全完结.所以这里直接回滚
         $this->rollback();

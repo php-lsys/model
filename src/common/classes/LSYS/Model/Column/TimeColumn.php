@@ -28,7 +28,7 @@ class TimeColumn extends Column implements ColumnSave{
     }
     /**
      * 设置字段格式 同date函数参数
-     * @param string $format
+     * @param string||true $format
      * @return static
      */
     public function setFormat($format){
@@ -45,7 +45,7 @@ class TimeColumn extends Column implements ColumnSave{
         if ($this->_format===true)return intval($old_val)==intval($new_val);
         return strtotime($old_val)==strtotime($new_val);
     }
-    public function update(Entity $entity, $column)
+    public function update(Entity $entity,string $column)
     {
         if ($this->_is_update) {
             if($this->_format===true){
@@ -55,7 +55,7 @@ class TimeColumn extends Column implements ColumnSave{
             }
         }
     }
-    public function create(Entity $entity, $column)
+    public function create(Entity $entity,string $column)
     {
         if ($this->_is_create) {
             if($this->_format===true) $entity->__set($column, time());

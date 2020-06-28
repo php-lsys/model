@@ -17,15 +17,15 @@ class ModelUser extends \LSYS\Model{
 //             //->add((new \LSYS\Model\Column\TimeColumn('change_time'))->setUpdate(),true)
 //             ;
 //     }
-    public function entityClass()
+    public function entityClass():string
     {
         return \Model\EntityUser::class;
     }
-    public function tableName()
+    public function tableName():string
     {
         return "user";
     }
-    public function hasOne() {
+    public function hasOne():array {
         return [
             'orm1'=>[
                 'model'=>__CLASS__,
@@ -33,7 +33,7 @@ class ModelUser extends \LSYS\Model{
             ]
         ];
     }
-    public function belongsTo() {
+    public function belongsTo():array {
         return [
             'orm2'=>[
                 'model'=>__CLASS__,
@@ -41,7 +41,7 @@ class ModelUser extends \LSYS\Model{
             ]
         ];
     }
-    public function hasMany() {
+    public function hasMany() :array{
         return [
             'orm3'=>[
                 'model'=>__CLASS__,

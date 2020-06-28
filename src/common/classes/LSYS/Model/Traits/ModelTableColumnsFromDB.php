@@ -1,8 +1,11 @@
 <?php
 namespace LSYS\Model\Traits;
+/**
+ * 解析表字段生成字段集对象
+ */
 trait ModelTableColumnsFromDB{
     /**
-	 * @var \LSYS\Model\Database\ColumnSet
+	 * @var \LSYS\Model\Database\ColumnSet[]
 	 */
 	private static $_table_columns_cache;
 	private function _tableColumns(){
@@ -14,9 +17,16 @@ trait ModelTableColumnsFromDB{
 	    }
 	    return self::$_table_columns_cache[$table_name];
 	}
+	/**
+	 * @return \LSYS\Model\Database\ColumnSet
+	 */
 	public function tableColumns(){
 	    return $this->_tableColumns()->columnSet();
 	}
+	/**
+	 * primary key name
+	 * @return string|array
+	 */
 	public function primaryKey() {
 	    return $this->_tableColumns()->primaryKey();
 	}

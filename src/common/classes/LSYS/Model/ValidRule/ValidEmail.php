@@ -15,7 +15,7 @@ class ValidEmail implements ValidRule{
     /**
      * @param bool $dns 是否检测DNS
      */
-    public function __construct($dns=false,$allow_empty=true,$strict=FALSE) {
+    public function __construct(bool $dns=false,bool $allow_empty=true,bool $strict=FALSE) {
         $this->_dns=$dns;
         $this->_strict=$strict;
         $this->_allow_empty=$allow_empty;
@@ -26,13 +26,13 @@ class ValidEmail implements ValidRule{
     /**
      * @return bool
      */
-    public function check(Validation $validation,$field,$email,$label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,string $field,$email,string $label,Entity $entity,array $check_data) {
         $param=array(
             ":label"=>$label,
             ":email"=>$email,
             ":field"=>$field,
         );
-        if (mb_strlen($email,\LSYS\Core::$charset) > 254)
+        if (mb_strlen($email,\LSYS\Core::charset()) > 254)
         {
             $validation->error($field, __(":label [:field] [:email] to long",$param));
             return ;
@@ -46,7 +46,7 @@ class ValidEmail implements ValidRule{
             return ;
         }
     }
-    public function allowEmpty()
+    public function allowEmpty():bool
     {
         return $this->_allow_empty;
     }

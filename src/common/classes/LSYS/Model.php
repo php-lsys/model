@@ -21,21 +21,21 @@ abstract class Model implements Table{
 	 * 返回hasOne关系
 	 * @return array
 	 */
-	public function hasOne() {
+	public function hasOne():array{
 	    return [];
 	}
 	/**
 	 * 返回belongsTo关系
 	 * @return array
 	 */
-	public function belongsTo() {
+	public function belongsTo():array {
 	    return [];
 	}
 	/**
 	 * 返回hasMany关系
 	 * @return array
 	 */
-	public function hasMany() {
+	public function hasMany():array {
 	    return [];
 	}
 	/**
@@ -49,7 +49,7 @@ abstract class Model implements Table{
 	 * @param string $model_name
 	 * @return static
 	 */
-	protected function _createModel($model_name){
+	protected function _createModel(string $model_name){
 	    return (new \ReflectionClass($model_name))->newInstance();
 	}
 	
@@ -60,7 +60,7 @@ abstract class Model implements Table{
 	 * @param array|string|EntityColumnSet $columns
 	 * @return Entity|static|NULL
 	 */
-	public function related(Entity $entity,$column,$columns=null) {
+	public function related(Entity $entity,string $column,$columns=null) {
 	    if (isset($this->belongsTo()[$column])){
 	        return $this->_findBelongsTo($entity, $column,$columns);
 	    }
@@ -78,7 +78,7 @@ abstract class Model implements Table{
 	 * @param mixed $val
 	 * @return boolean
 	 */
-	protected function _filterEmpty($related,$val){
+	protected function _filterEmpty($related,$val):bool{
 	    $filter=array(0,NULL,FALSE);
 	    if (isset($related['filter']))$filter=$related['filter'];
 	    if (!is_array($filter))$filter=[$filter];
@@ -90,7 +90,7 @@ abstract class Model implements Table{
 	 * @param string $key_name
 	 * @param static
 	 */
-	private function _relationKeyFill(&$relation,$key_name,Model $orm){
+	private function _relationKeyFill(&$relation,string $key_name,Model $orm){
 	    if (!isset($relation [$key_name])) {
 	        $relation [$key_name]=strtolower($orm->tableName()."_".$orm->primaryKey());
 	    }
@@ -103,7 +103,7 @@ abstract class Model implements Table{
 	 * @throws Exception
 	 * @return static
 	 */
-	private function _createRelated($related,$column) {
+	private function _createRelated($related,string $column) {
 	    if (!isset ( $related [$column] )
 	        ||!isset($related [$column] ['model'])
 	        ||! is_subclass_of ( $related [$column] ['model'], __CLASS__ )
@@ -122,7 +122,7 @@ abstract class Model implements Table{
 	 * @throws Exception
 	 * @return Entity
 	 */
-	protected function _findBelongsTo(Entity $entity,$column,$columns=null){
+	protected function _findBelongsTo(Entity $entity,string $column,$columns=null){
 	    $belongs_to=$this->belongsTo();
 	    $model=$this->_createRelated($belongs_to, $column);
 	    $this->_relationKeyFill($belongs_to [$column],'foreign_key',$model);
@@ -144,7 +144,7 @@ abstract class Model implements Table{
 	 * @throws Exception
 	 * @return Entity
 	 */
-	protected function _findHasOne(Entity $entity,$column,$columns=null){
+	protected function _findHasOne(Entity $entity,string $column,$columns=null){
 	    $has_one=$this->hasOne();
 	    $model=$this->_createRelated($has_one, $column);
 	    if (!$entity->loaded()){
@@ -168,7 +168,7 @@ abstract class Model implements Table{
 	 * @throws Exception
 	 * @return static
 	 */
-	protected function _findHasMany(Entity $entity,$column,$columns=null){
+	protected function _findHasMany(Entity $entity,string $column,$columns=null){
 	    // 方式1
 	    //			"model"=>"对方模型名",
 	    //			"foreign_key"=>"对方存本身主键的字段名",
@@ -204,7 +204,14 @@ abstract class Model implements Table{
 	    $dbbuilder->where ( $col, '=', $entity->pk() );
 	    return $dbbuilder;
 	}
-	public function has(Entity $entity,$alias, $far_keys = NULL) {
+	/**
+	 * 是否存在某关系
+	 * @param Entity $entity
+	 * @param string $alias
+	 * @param mixed $far_keys
+	 * @return bool
+	 */
+	public function has(Entity $entity,string $alias, $far_keys = NULL):bool {
 	    $count = $this->countRelations ($entity,$alias, $far_keys );
 		if ($far_keys === NULL) {
 			return ( bool ) $count;
@@ -212,10 +219,24 @@ abstract class Model implements Table{
 			return $count === count ( $far_keys );
 		}
 	}
-	public function hasAny(Entity $entity,$alias, $far_keys = NULL) {
+	/**
+	 * 是否存某关系集
+	 * @param Entity $entity
+	 * @param string $alias
+	 * @param mixed $far_keys
+	 * @return bool
+	 */
+	public function hasAny(Entity $entity,string $alias, $far_keys = NULL):bool {
 	    return ( bool ) $this->countRelations ($entity,$alias, $far_keys );
 	}
-	public function countRelations(Entity $entity,$alias, $far_keys = NULL)
+	/**
+	 * 查询指定关系数量
+	 * @param Entity $entity
+	 * @param string $alias
+	 * @param mixed $far_keys
+	 * @return int
+	 */
+	public function countRelations(Entity $entity,string $alias, $far_keys = NULL):int
 	{
 	    $db=$this->db();
 	    $has_many=$this->hasMany();
@@ -254,7 +275,14 @@ abstract class Model implements Table{
 		$result=$db->query($sql);
 		return (int)$result->get('total',0);
 	}
-	public function add(Entity $entity,$alias, $far_keys) {
+	/**
+	 * 添加一个关系
+	 * @param Entity $entity
+	 * @param string $alias
+	 * @param mixed $far_keys
+	 * @return bool
+	 */
+	public function add(Entity $entity,string $alias, $far_keys):bool {
 	    $has_many=$this->hasMany();
 	    if (!isset($has_many[$alias])
 	        ||!isset($has_many[$alias]['through'])
@@ -288,7 +316,14 @@ abstract class Model implements Table{
 		$sql=" INSERT INTO ".$table." (".$str_field.")VALUES {$str_data}";
 		return $db->exec($sql);
 	}
-	public function remove(Entity $entity,$alias, $far_keys = NULL) {
+	/**
+	 * 移除一个关系
+	 * @param Entity $entity
+	 * @param string $alias
+	 * @param mixed $far_keys
+	 * @return bool
+	 */
+	public function remove(Entity $entity,string $alias, $far_keys = NULL):bool {
 	    $has_many=$this->hasMany();
 	    if (!isset($has_many[$alias])
 	        ||!isset($has_many[$alias]['through'])
@@ -317,7 +352,7 @@ abstract class Model implements Table{
 	 * 返回实体名
 	 * @return string
 	 */
-	public function entityClass()
+	public function entityClass():string
 	{
 	    return Entity::class;
 	}
@@ -325,7 +360,7 @@ abstract class Model implements Table{
 	 * 得到当前模型的完整表名
 	 * @return string
 	 */
-	public function tableFullName(){
+	public function tableFullName():string{
 	    return $this->db()->quoteTable($this->tableName());
 	}
 	/**

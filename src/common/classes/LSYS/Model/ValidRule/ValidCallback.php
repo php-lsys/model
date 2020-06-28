@@ -7,7 +7,7 @@ class ValidCallback implements ValidRule{
     protected $_fun;
     protected $_param;
     protected $_allow_null;
-    public function __construct($fun,$allow_null,$param=array(":value")) {
+    public function __construct($fun,bool $allow_null,$param=array(":value")) {
         $this->_fun=$fun;
         $this->_param=$param;
         $this->_allow_null=$allow_null;
@@ -18,7 +18,7 @@ class ValidCallback implements ValidRule{
      * @param string $string 为空返回指定函数错误提示
      * @return string[]|NULL|string
      */
-    public static function i18n($fun=null,$string=null){
+    public static function i18n(?string $fun=null,?string $string=null){
         static $i18n;
         if(!$i18n){
             $i18n=array(
@@ -38,7 +38,7 @@ class ValidCallback implements ValidRule{
         }
         $i18n[$fun]=$string;
     }
-    public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,string $field,$value,string $label,Entity $entity,array $check_data) {
         // Rules are defined as array($rule, $params)
         $rule=$this->_fun;
         $params=$this->_param;
@@ -101,7 +101,7 @@ class ValidCallback implements ValidRule{
             $validation->error($field,strtr($msg?$msg:":label [:field] valid fail",$args));
         }
     }
-    public function allowEmpty()
+    public function allowEmpty():bool
     {
         return $this->_allow_null;
     }

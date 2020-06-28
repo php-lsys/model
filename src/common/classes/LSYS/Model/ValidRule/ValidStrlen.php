@@ -13,7 +13,7 @@ class ValidStrlen implements ValidRule{
      * @param int $max 存在时表示不大于此值
      * @param bool $allow_empty 是否不能为空
      */
-    public function __construct($min,$max=null,$allow_empty=true) {
+    public function __construct(int $min,?int $max=null,bool $allow_empty=true) {
         $this->_min=intval($min);
         $this->_max=$max;
         $this->_allow_empty=boolval($allow_empty);
@@ -21,7 +21,7 @@ class ValidStrlen implements ValidRule{
     /**
      * @return bool
      */
-    public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,string $field,$value,string $label,Entity $entity,array $check_data) {
         $len=strlen($value);
         $param=array(
           ":label"=>$label,  
@@ -36,7 +36,7 @@ class ValidStrlen implements ValidRule{
             $validation->error($field, __(":label [:field] strlen can't be > :max",$param));
         }
     }
-    public function allowEmpty()
+    public function allowEmpty():bool
     {
         return $this->_allow_empty;
     }
