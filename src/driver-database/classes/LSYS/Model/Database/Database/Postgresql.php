@@ -24,7 +24,7 @@ class Postgresql extends  \LSYS\Model\Database\Database {
 		pg_attribute.attnum > 0
 		AND attisdropped <> 't'
 		ORDER BY pg_attribute.attnum ;";
-	    $result = $this->_db->query($sql);
+        $result = $this->_db->getMasterConnect()->query($sql);
         $columns=[];
         $pk=[];
         foreach ($result as $row)

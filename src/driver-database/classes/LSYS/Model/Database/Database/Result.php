@@ -29,7 +29,7 @@ class Result implements \LSYS\Entity\Database\Result {
         return $this->_result->rewind();
     }
 
-    public function get(string $name, $default = NULL)
+    public function get($name, $default = NULL)
     {
         return $this->_result->get($name,$default);
     }
@@ -37,7 +37,7 @@ class Result implements \LSYS\Entity\Database\Result {
     {
         return $this->_result->key();
     }
-    public function fetchCount(bool $iterator=false):int{
+    public function fetchCount($iterator=false):int{
         return $this->_result->count();
     }
 }

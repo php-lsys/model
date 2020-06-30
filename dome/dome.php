@@ -78,6 +78,7 @@ foreach ($b as $bb){
 }
 $e->table()->dbBuilder()->insert($data)->exec();
 //未查找记录批量更新
+
 $tm->dbBuilder()->update(array(
     'name'=>'11'
 ),$tm->db()->expr("id=:id",[":id"=>"1"]))->exec();
@@ -86,7 +87,7 @@ $res=$e->table()->dbBuilder()->findAll();
 foreach ($res as $bb){
     $bb->values($b[0])->check();
 }
-$tm->dbBuilder()->update($res->current()->updateData(),$res)->exec();
+$tm->dbBuilder()->update($b[0],$res)->exec();
 
 //批量删除
 $tm->dbBuilder()->delete($tm->db()->expr("name=:bb",[":bb"=>"ddd"]))->exec();

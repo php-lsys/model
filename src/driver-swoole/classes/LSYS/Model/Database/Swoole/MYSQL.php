@@ -79,7 +79,7 @@ class MYSQL implements \LSYS\Model\Database {
         $this->_use_found_rows=1;
         return $this;
     }
-    public function query(string $sql,array $data=[])
+    public function query($sql,array $data=[])
     {
         $sql=ltrim($sql);
         if ($this->_use_found_rows==1&&strncasecmp($sql,"select",6)==0){
@@ -199,7 +199,7 @@ class MYSQL implements \LSYS\Model\Database {
      * {@inheritDoc}
      * @see \LSYS\Entity\Database::exec()
      */
-    public function exec(string $sql,array $data=[]):bool
+    public function exec($sql,array $data=[])
     {
         if (!$this->_master_mysql)$this->connect($this->createMysql(true));
         $this->_last_query=$sql;

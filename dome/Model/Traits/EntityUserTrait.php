@@ -8,7 +8,7 @@ namespace Model\Traits;
  * @method \Model\ModelUser table()
 */
 trait EntityUserTrait{
-    public function tableClass()
+    public function tableClass():string
     {
         RETURN \Model\ModelUser::class;
     }

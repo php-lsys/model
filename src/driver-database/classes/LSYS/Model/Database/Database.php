@@ -119,7 +119,7 @@ abstract class Database implements \LSYS\Model\Database {
         }
         return intval($row->get($total_column,0));
     }
-    public function exec(string $sql,array $data=[]):bool
+    public function exec($sql,array $data=[]):bool
     {
         $this->last_master_connect=$this->getMasterConnect();
         $this->last_connect=$this->last_master_connect;
@@ -202,6 +202,12 @@ abstract class Database implements \LSYS\Model\Database {
         }
     }
     public function expr($value,array $param) {
-        return \LSYS\Database::expr($value,$param);
+        return (new \LSYS\Model\Database\Database\Expr($value,$param));
+    }
+    /**
+     * @return \LSYS\Database
+     */
+    public function getDatabase() {
+        return $this->_db;
     }
 }

@@ -24,7 +24,7 @@ class DomeModelBuild extends TraitBuild{
     public function tablePrefix():string{
         return $this->_db->tablePrefix();
     }
-    public function message(string $table,string $msg){
+    public function message(string $table,string $msg):void{
         echo $table.$msg."\n";
     }
     //yaf model 生成

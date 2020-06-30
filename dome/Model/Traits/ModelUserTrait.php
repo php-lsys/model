@@ -20,22 +20,24 @@ trait ModelUserTrait {
         return new \LSYS\Entity\ColumnSet([
             (new \LSYS\Entity\Column('id'))->setType('int(11)')->setDefault(NULL),
 			(new \LSYS\Entity\Column('name'))->setType('varchar(100)')->setDefault(NULL),
-			(new \LSYS\Entity\Column('add_time'))->setType('int(11)')->setDefault(0),
+			(new \LSYS\Entity\Column('add_time'))->setType('int(11)')->setDefault(NULL),
 			(new \LSYS\Entity\Column('code'))->setType('varchar(100)')->setDefault(NULL)
         ]);
     }
     public function primaryKey() {
         return 'id';
     }
-    public function entityClass()
+    public function entityClass():string
     {
         return \Model\EntityUser::class;
     }
-    public function tableName()
+    public function tableName():string
     {
         return "user";
     }
+    
     /**
+     * 数据库执行构造器
      * @rewrite
      * @return \Model\Traits\BuilderUser
      */

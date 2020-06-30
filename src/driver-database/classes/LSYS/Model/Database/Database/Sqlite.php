@@ -12,7 +12,7 @@ class Sqlite extends  \LSYS\Model\Database\Database {
         $columns=[];
         $pk=[];
         $sql='PRAGMA table_info(' . $table . ')';
-        $result = $this->_db->query($sql);
+        $result = $this->_db->getMasterConnect()->query($sql);
         foreach ($result as $row)
         {
             $column=new Column($row['name']);

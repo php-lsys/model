@@ -24,7 +24,7 @@ class Result implements \LSYS\Entity\Database\Result {
         $this->_free=1;
         return $this;
     }
-    public function get(string $name, $default = NULL)
+    public function get($name, $default = NULL)
     {
         $row=$this->current();
         if (is_array($row)&&array_key_exists($name, $row))return $row[$name];
@@ -61,7 +61,7 @@ class Result implements \LSYS\Entity\Database\Result {
     {
         return $this->_index;
     }
-    public function fetchCount(bool $iterator=false):int{
+    public function fetchCount($iterator=false){
         if($iterator){
             $arr=$this->_res->fetchall();
             $this->_total+=is_array($arr)?count($arr):0;

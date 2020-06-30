@@ -12,7 +12,7 @@ class MYSQL extends  \LSYS\Model\Database\Database {
         $columns=[];
         $pk=[];
         $sql='SHOW FULL COLUMNS FROM '.$table;
-        foreach ($this->_db->query($sql)->setFetchFree() as $row) {
+        foreach ($this->_db->getMasterConnect()->query($sql)->setFetchFree() as $row) {
             $column=new Column($row['Field']);
             if($row['Key']=='PRI')$pk[]=$row['Field'];
             if($row['Null'] == 'YES')$column->setAllowNull(1);

@@ -29,4 +29,11 @@ require dirname(__DIR__)."/vendor/autoload.php";
 go(function(){
     //model的使用示例 参见 lsys/dome 的示例
    //示例目录model库 dome/dome.php 
+    $tm=new \LSYS\Model\Table("user");
+    //强制在从库查询一次
+    //$tm->db()->queryMode(\LSYS\Model\Database::QUERY_SLAVE_ONCE);
+    //强制查询都在从库查询
+    //$tm->db()->queryMode(\LSYS\Model\Database::QUERY_SLAVE_ALL);
+    var_dump($tm->dbBuilder()->where("id", "=", 10)->find()->asArray());
+    
 });
