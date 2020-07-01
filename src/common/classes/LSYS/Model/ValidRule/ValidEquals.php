@@ -20,7 +20,7 @@ class ValidEquals implements ValidRule{
     /**
      * @return bool
      */
-    public function check(Validation $validation,string $field,$value,string $label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
         $values=is_array($this->_value)?$this->_value:[$this->_value];
         $param=array(
           ":label"=>$label,  
@@ -37,7 +37,7 @@ class ValidEquals implements ValidRule{
             }
         }
     }
-    public function allowEmpty():bool
+    public function allowEmpty()
     {
         return false;
     }

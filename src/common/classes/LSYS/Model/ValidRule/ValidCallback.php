@@ -38,7 +38,7 @@ class ValidCallback implements ValidRule{
         }
         $i18n[$fun]=$string;
     }
-    public function check(Validation $validation,string $field,$value,string $label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
         // Rules are defined as array($rule, $params)
         $rule=$this->_fun;
         $params=$this->_param;
@@ -101,7 +101,7 @@ class ValidCallback implements ValidRule{
             $validation->error($field,strtr($msg?$msg:":label [:field] valid fail",$args));
         }
     }
-    public function allowEmpty():bool
+    public function allowEmpty()
     {
         return $this->_allow_null;
     }

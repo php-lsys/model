@@ -26,7 +26,7 @@ class ValidEmail implements ValidRule{
     /**
      * @return bool
      */
-    public function check(Validation $validation,string $field,$email,string $label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,$field,$email,$label,Entity $entity,array $check_data) {
         $param=array(
             ":label"=>$label,
             ":email"=>$email,
@@ -46,7 +46,7 @@ class ValidEmail implements ValidRule{
             return ;
         }
     }
-    public function allowEmpty():bool
+    public function allowEmpty()
     {
         return $this->_allow_empty;
     }

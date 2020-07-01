@@ -79,7 +79,7 @@ class MYSQL implements \LSYS\Model\Database {
         $this->_use_found_rows=1;
         return $this;
     }
-    public function query($sql,array $data=[])
+    public function query(string $sql,array $data=[])
     {
         $sql=ltrim($sql);
         if ($this->_use_found_rows==1&&strncasecmp($sql,"select",6)==0){
@@ -242,11 +242,11 @@ class MYSQL implements \LSYS\Model\Database {
         }
         return new \LSYS\Model\Database\ColumnSet(new ColumnSet($columns), count($pk)==1?array_shift($pk):$pk);
     }
-    public function insertId():?int
+    public function insertId()
     {
         return $this->_insert_id;
     }
-    public function quoteColumn($column):string
+    public function quoteColumn($column)
     {
         if(empty($column)) return '';
         $this->_initCreateMysql();
@@ -295,7 +295,7 @@ class MYSQL implements \LSYS\Model\Database {
         }
         return $column;
     }
-    public function quoteTable($table):string
+    public function quoteTable($table)
     {
         $this->_initCreateMysql();
         // Identifiers are escaped by repeating them
@@ -344,7 +344,7 @@ class MYSQL implements \LSYS\Model\Database {
         }
         return $table;
     }
-    public function quoteValue($value, $column_type=null):string
+    public function quoteValue($value, $column_type=null)
     {
         if ($value === NULL) {
             return 'NULL';

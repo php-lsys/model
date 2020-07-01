@@ -45,7 +45,7 @@ class TimeColumn extends Column implements ColumnSave{
         if ($this->_format===true)return intval($old_val)==intval($new_val);
         return strtotime($old_val)==strtotime($new_val);
     }
-    public function update(Entity $entity,string $column)
+    public function update(Entity $entity,$column)
     {
         if ($this->_is_update) {
             if($this->_format===true){
@@ -55,7 +55,7 @@ class TimeColumn extends Column implements ColumnSave{
             }
         }
     }
-    public function create(Entity $entity,string $column)
+    public function create(Entity $entity,$column)
     {
         if ($this->_is_create) {
             if($this->_format===true) $entity->__set($column, time());

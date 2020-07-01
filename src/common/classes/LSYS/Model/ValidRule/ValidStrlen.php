@@ -21,7 +21,7 @@ class ValidStrlen implements ValidRule{
     /**
      * @return bool
      */
-    public function check(Validation $validation,string $field,$value,string $label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
         $len=strlen($value);
         $param=array(
           ":label"=>$label,  
@@ -36,7 +36,7 @@ class ValidStrlen implements ValidRule{
             $validation->error($field, __(":label [:field] strlen can't be > :max",$param));
         }
     }
-    public function allowEmpty():bool
+    public function allowEmpty()
     {
         return $this->_allow_empty;
     }

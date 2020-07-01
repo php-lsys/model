@@ -37,7 +37,7 @@ class Result implements \LSYS\Entity\Database\Result {
     {
         return $this->_result->key();
     }
-    public function fetchCount($iterator=false):int{
+    public function fetchCount($iterator=false){
         return $this->_result->count();
     }
 }

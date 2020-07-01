@@ -119,7 +119,7 @@ abstract class Database implements \LSYS\Model\Database {
         }
         return intval($row->get($total_column,0));
     }
-    public function exec($sql,array $data=[]):bool
+    public function exec($sql,array $data=[])
     {
         $this->last_master_connect=$this->getMasterConnect();
         $this->last_connect=$this->last_master_connect;
@@ -131,25 +131,25 @@ abstract class Database implements \LSYS\Model\Database {
             throw $e;
         }
     }
-    public function insertId():?int
+    public function insertId()
     {
         return $this->getMasterConnect()->insertId();
     }
-    public function quoteColumn($column):string
+    public function quoteColumn($column)
     {
         if ($column instanceof Expr) {
             $column=new \LSYS\Database\Expr($column->value());
         }
         return $this->_db->getConnect()->quoteColumn($column);
     }
-    public function quoteTable($table):string
+    public function quoteTable($table)
     {
         if ($table instanceof Expr) {
             $table=new \LSYS\Database\Expr($table->value());
         }
        return $this->_db->getConnect()->quoteTable($table);
     }
-    public function quoteValue($value, $column_type=null):string
+    public function quoteValue($value, $column_type=null)
     {
         if ($value instanceof Expr) {
             $value=new \LSYS\Database\Expr($value->value());

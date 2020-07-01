@@ -14,7 +14,7 @@ class FilterCallback implements FilterRule{
         $this->_fun=$fun;
         $this->_param=$param;
     }
-    public function filter(Entity $entity, $value,string $field)
+    public function filter(Entity $entity, $value,$field)
     {
         $_bound = array (
             ':field' => $field,

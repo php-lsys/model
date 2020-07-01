@@ -104,7 +104,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         $this->_pool->push($db);
         return $row;
     }
-    public function exec(string $sql,array $data=[]):bool
+    public function exec($sql,array $data=[])
     {
         $this->_last_query=$sql;
         if ($this->inTransaction()) {
@@ -158,11 +158,11 @@ class MYSQLPool implements \LSYS\Model\Database {
         }
         return new \LSYS\Model\Database\ColumnSet(new ColumnSet($columns), count($pk)==1?array_shift($pk):$pk);
     }
-    public function insertId():?int
+    public function insertId()
     {
         return $this->_insert_id;
     }
-    public function quoteColumn($column):string
+    public function quoteColumn($column)
     {
         if(empty($column)) return '';
         // Identifiers are escaped by repeating them
@@ -210,7 +210,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         }
         return $column;
     }
-    public function quoteTable($table):string
+    public function quoteTable($table)
     {
         // Identifiers are escaped by repeating them
         $escaped_identifier = $this->_identifier . $this->_identifier;
@@ -258,7 +258,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         }
         return $table;
     }
-    public function quoteValue($value, $column_type=null):string
+    public function quoteValue($value, $column_type=null)
     {
         static $no_esc;
         if ($value === NULL) {

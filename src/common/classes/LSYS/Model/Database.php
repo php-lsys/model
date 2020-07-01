@@ -28,13 +28,13 @@ interface Database extends \LSYS\Entity\Database{
      * @param string|array $table 
      * @return string
      */
-    public function quoteTable($table):string;
+    public function quoteTable($table);
     /**
      * 包裹字段 字段名 或 array("字段名","别名")
      * @param string|array $column
      * @return string
      */
-    public function quoteColumn($column):string;
+    public function quoteColumn($column);
     /**
      * 包裹值
      * $column_type为NULL时候根据$value自动推断
@@ -42,7 +42,7 @@ interface Database extends \LSYS\Entity\Database{
      * @param mixed $column_type
      * @return string
      */
-    public function quoteValue($value,$column_type=null):string;
+    public function quoteValue($value,$column_type=null);
     /**
      * 返回指定表字段集合
      * @param string $table

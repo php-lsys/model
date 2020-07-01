@@ -5,7 +5,7 @@ use LSYS\Entity;
 use LSYS\Entity\Validation;
 use function LSYS\Model\__ as __;
 use LSYS\Validation\Valid;
-class ValidEmail implements ValidRule{
+class ValidStr implements ValidRule{
     const ALPHA=1;
     const ALPHA_NUMERIC=2;
     const ALPHA_DASH=3;
@@ -29,7 +29,7 @@ class ValidEmail implements ValidRule{
     /**
      * @return bool
      */
-    public function check(Validation $validation,string $field,$value,string $label,Entity $entity,array $check_data) {
+    public function check(Validation $validation,$field,$value,$label,Entity $entity,array $check_data) {
         $param=array(
             ":label"=>$label,
             ":value"=>$value,
@@ -78,7 +78,7 @@ class ValidEmail implements ValidRule{
             break;
         }
     }
-    public function allowEmpty():bool
+    public function allowEmpty()
     {
         return $this->_allow_empty;
     }

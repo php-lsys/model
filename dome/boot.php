@@ -4,6 +4,9 @@ use LSYS\DI\SingletonCallback;
 use LSYS\Database;
 $loader=include_once __DIR__."/../vendor/autoload.php";
 $loader->setPsr4("", "./");
+LSYS\Core::sets(array(
+    'environment'=>LSYS\Core::DEVELOP
+));
 File::dirs(array(
     __DIR__."/config",
 ));
