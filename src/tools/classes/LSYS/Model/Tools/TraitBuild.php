@@ -350,7 +350,7 @@ abstract class TraitBuild{
             $this->message($table,"create start");
             
             
-            $columnset=$db->listColumns($db->quoteTable($table_name));
+            $columnset=$db->listColumns($db->quoteTable($tp.$table_name));
             $model_name=$this->modelName($table_name);
             $model_trait_name=$this->modelTraitName($table_name);
             $entity_name=$this->entityName($table_name);
