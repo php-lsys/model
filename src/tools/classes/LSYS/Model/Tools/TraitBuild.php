@@ -206,7 +206,7 @@ abstract class TraitBuild{
      * @param Column $column
      * @return string
      */
-    protected function databaseTypeToCodeType(Column $column) {
+    protected function toCodeType(Column $column) {
         $type='string';
         if(!is_array($column->getType()))$type=strval($column->getType());
         return $type;
@@ -228,7 +228,7 @@ abstract class TraitBuild{
             if ($column->useDefault()&&!empty($column->getDefault())) {
                 $commit.=" [".$column->getDefault().']';
             }
-            $type=$this->databaseTypeToCodeType($column);
+            $type=$this->toCodeType($column);
             $doc[]=" * @property {$type} \${$name}\t{$commit}";
         }
         $doc[]=" * @method {$model_name} table()";
