@@ -202,6 +202,16 @@ abstract class TraitBuild{
         return file_get_contents(__DIR__.'/../../../../tpls/BuilderTpl.php');
     }
     /**
+     * 数据库数据类型转为代码数据类型
+     * @param Column $column
+     * @return string
+     */
+    protected function databaseTypeToCodeType(Column $column) {
+        $type='string';
+        if(!is_array($column->getType()))$type=strval($column->getType());
+        return $type;
+    }
+    /**
      * 生成entity注释
      * @param ColumnSet $set
      * @param string $model_name
@@ -211,8 +221,6 @@ abstract class TraitBuild{
         $doc=[];
         foreach ($set as $column){
             assert($column instanceof Column);
-            $type='string';
-            if(!is_array($column->getType()))$type=strval($column->getType());
             $name=$column->name();
             $commit=strval($column->comment());
             $commit=str_replace(["\n","\r"],' ', $commit);
@@ -220,6 +228,7 @@ abstract class TraitBuild{
             if ($column->useDefault()&&!empty($column->getDefault())) {
                 $commit.=" [".$column->getDefault().']';
             }
+            $type=$this->databaseTypeToCodeType($column);
             $doc[]=" * @property {$type} \${$name}\t{$commit}";
         }
         $doc[]=" * @method {$model_name} table()";
