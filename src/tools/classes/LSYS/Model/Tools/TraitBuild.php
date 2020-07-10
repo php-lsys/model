@@ -203,14 +203,261 @@ abstract class TraitBuild{
     }
     /**
      * 数据库数据类型转为代码数据类型
-     * @param Column $column
-     * @return string
+     * @param string $type
+     * @return array
      */
-    protected function toCodeType(Column $column) {
-        $type='string';
-        if(!is_array($column->getType()))$type=strval($column->getType());
-        return $type;
+    protected function toCodeType(Column $column):string{
+        if(is_array($column->getType()))return 'string';
+        $type=strval($column->getType());
+        if (($open = strpos ( $type, '(' )) !== FALSE) {
+            // Closing parenthesis
+            $close = strrpos ( $type, ')', $open );
+            // Type without the length
+            $type = substr ( $type, 0, $open ) . substr ( $type, $close + 1 );
+        }
+        $types = array (
+            'blob' => array (
+                'type' => 'string',
+            ),
+            'bool' => array (
+                'type' => 'bool'
+            ),
+            'bigint unsigned' => array (
+                'type' => 'int',
+            ),
+            'datetime' => array (
+                'type' => 'string'
+            ),
+            'decimal unsigned' => array (
+                'type' => 'float',
+            ),
+            'double' => array (
+                'type' => 'float'
+            ),
+            'double precision unsigned' => array (
+                'type' => 'float',
+            ),
+            'double unsigned' => array (
+                'type' => 'float',
+            ),
+            'enum' => array (
+                'type' => 'string'
+            ),
+            'fixed' => array (
+                'type' => 'float',
+            ),
+            'fixed unsigned' => array (
+                'type' => 'float',
+            ),
+            'float unsigned' => array (
+                'type' => 'float',
+            ),
+            'int unsigned' => array (
+                'type' => 'int',
+            ),
+            'integer unsigned' => array (
+                'type' => 'int',
+            ),
+            'longblob' => array (
+                'type' => 'string',
+            ),
+            'longtext' => array (
+                'type' => 'string',
+            ),
+            'mediumblob' => array (
+                'type' => 'string',
+            ),
+            'mediumint' => array (
+                'type' => 'int',
+            ),
+            'mediumint unsigned' => array (
+                'type' => 'int',
+            ),
+            'mediumtext' => array (
+                'type' => 'string',
+            ),
+            'national varchar' => array (
+                'type' => 'string'
+            ),
+            'numeric unsigned' => array (
+                'type' => 'float',
+            ),
+            'nvarchar' => array (
+                'type' => 'string'
+            ),
+            'point' => array (
+                'type' => 'string',
+            ),
+            'real unsigned' => array (
+                'type' => 'float',
+            ),
+            'set' => array (
+                'type' => 'string'
+            ),
+            'smallint unsigned' => array (
+                'type' => 'int',
+            ),
+            'text' => array (
+                'type' => 'string',
+            ),
+            'tinyblob' => array (
+                'type' => 'string',
+            ),
+            'tinyint' => array (
+                'type' => 'int',
+            ),
+            'tinyint unsigned' => array (
+                'type' => 'int',
+            ),
+            'tinytext' => array (
+                'type' => 'string',
+            ),
+            'year' => array (
+                'type' => 'string'
+            )
+        );
+        $type = str_replace ( ' zerofill', '', $type );
+        if (isset ( $types [$type] )) return $types [$type]['type'];
+        $types = array (
+            // SQL-92
+            'bit' => array (
+                'type' => 'string',
+            ),
+            'bit varying' => array (
+                'type' => 'string'
+            ),
+            'char' => array (
+                'type' => 'string',
+            ),
+            'char varying' => array (
+                'type' => 'string'
+            ),
+            'character' => array (
+                'type' => 'string',
+            ),
+            'character varying' => array (
+                'type' => 'string'
+            ),
+            'date' => array (
+                'type' => 'string'
+            ),
+            'dec' => array (
+                'type' => 'float',
+            ),
+            'decimal' => array (
+                'type' => 'float',
+            ),
+            'double precision' => array (
+                'type' => 'float'
+            ),
+            'float' => array (
+                'type' => 'float'
+            ),
+            'int' => array (
+                'type' => 'int',
+            ),
+            'integer' => array (
+                'type' => 'int',
+            ),
+            'interval' => array (
+                'type' => 'string'
+            ),
+            'national char' => array (
+                'type' => 'string',
+            ),
+            'national char varying' => array (
+                'type' => 'string'
+            ),
+            'national character' => array (
+                'type' => 'string',
+            ),
+            'national character varying' => array (
+                'type' => 'string'
+            ),
+            'nchar' => array (
+                'type' => 'string',
+            ),
+            'nchar varying' => array (
+                'type' => 'string'
+            ),
+            'numeric' => array (
+                'type' => 'float',
+            ),
+            'real' => array (
+                'type' => 'float'
+            ),
+            'smallint' => array (
+                'type' => 'int',
+            ),
+            'time' => array (
+                'type' => 'string'
+            ),
+            'time with time zone' => array (
+                'type' => 'string'
+            ),
+            'timestamp' => array (
+                'type' => 'string'
+            ),
+            'timestamp with time zone' => array (
+                'type' => 'string'
+            ),
+            'varchar' => array (
+                'type' => 'string'
+            ),
+            // SQL:1999
+            'binary large object' => array (
+                'type' => 'string',
+            ),
+            'blob' => array (
+                'type' => 'string',
+            ),
+            'boolean' => array (
+                'type' => 'bool'
+            ),
+            'char large object' => array (
+                'type' => 'string'
+            ),
+            'character large object' => array (
+                'type' => 'string'
+            ),
+            'clob' => array (
+                'type' => 'string'
+            ),
+            'national character large object' => array (
+                'type' => 'string'
+            ),
+            'nchar large object' => array (
+                'type' => 'string'
+            ),
+            'nclob' => array (
+                'type' => 'string'
+            ),
+            'time without time zone' => array (
+                'type' => 'string'
+            ),
+            'timestamp without time zone' => array (
+                'type' => 'string'
+            ),
+            // SQL:2003
+            'bigint' => array (
+                'type' => 'int',
+            ),
+            // SQL:2008
+            'binary' => array (
+                'type' => 'string',
+            ),
+            'binary varying' => array (
+                'type' => 'string',
+            ),
+            'varbinary' => array (
+                'type' => 'string',
+            )
+        );
+        if (isset ( $types [$type]['type'] ))return $types [$type]['type'];
+        return 'string';
     }
+    
+    
     /**
      * 生成entity注释
      * @param ColumnSet $set
