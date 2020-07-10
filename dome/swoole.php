@@ -18,7 +18,7 @@ require dirname(__DIR__)."/vendor/autoload.php";
             }
         });
         //协程连接池
-        $pool=\LSYS\Swoole\Coroutine\MySQLPool\DI::get()->swoole_mysql_pool();
+        $pool=\LSYS\Swoole\Coroutine\DI::get()->swoole_mysql_pool();
         $mp=new \LSYS\Model\Database\Swoole\MYSQLPool($pool);
         //$mp->queryConfig("master*", "read*"); //设置 主从库的配置,默认都是从master*上取连接
         return $mp;

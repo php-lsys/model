@@ -18,7 +18,7 @@ class MYSQLPool implements \LSYS\Model\Database {
     protected $_db;
     protected $mode=0;
     public function __construct(\LSYS\Swoole\Coroutine\MySQLPool $pool=null){
-        $this->_pool=$pool?$pool:\LSYS\Swoole\Coroutine\MySQLPool\DI::get()->swoole_mysql_pool();
+        $this->_pool=$pool?$pool:\LSYS\Swoole\Coroutine\DI::get()->swoole_mysql_pool();
         $this->_query_config=["master*","master*"];
         $this->_table_prefix=$this->_pool->config()->get("table_prefix","");
     }
