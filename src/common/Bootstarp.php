@@ -24,14 +24,4 @@ namespace LSYS\Model{
 	    $page-=1;
 	    return $limit*$page;
 	}
-	/**
-	 * 页码数组转偏移数组
-	 * @param int $page
-	 * @param int $limit
-	 * @return [int,int]
-	 */
-	function pageParam($page,$limit) {
-	    return [pageOffset($page, $limit),$limit];
-	}
-	
 }
