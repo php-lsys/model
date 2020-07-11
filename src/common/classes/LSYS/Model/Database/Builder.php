@@ -17,6 +17,10 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      */
     protected $_column_set;
     /**
+     * @var int
+     */
+    protected $_page;
+    /**
      * {@inheritDoc}
      * @see \LSYS\Entity\Database\SQLBuilder::update()
      */
@@ -539,15 +543,45 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      */
     public function limit($number) {
         // Add pending database call which is executed after query type is determined
-        $this->_db_pending [] = array (
+        if (is_null($number)||$number===false) {
+            unset($this->_db_pending ['limit']);
+            return $this;
+        }
+        $this->_db_pending ['limit'] = array (
             'name' => 'limit',
             'args' => array (
                 $number
             )
         );
-        
+        if ($this->_page>0) {
+            $this->page($this->_page);
+            $this->_page=0;
+        }
         return $this;
     }
+    
+    /**
+     * set limit and offset form page number
+     * @param int $number
+     * @return $this
+     */
+    public function page($number) {
+        if (is_null($number)||$number===false) {
+            unset($this->_db_pending ['offset']);
+            return $this;
+        }
+        $number=$number<=1?1:$number;
+        if(isset($this->_db_pending['limit'])){
+            $limit=intval($this->_db_pending['limit']['args'][0]??0);
+            $limit=$limit<=0?0:$limit;
+            $number-=1;
+            $offset=$limit*$number;
+            return $this->offset($offset);
+        }
+        $this->_page=$number;
+        return $this;
+    }
+    
     
     /**
      * Enables or disables selecting only unique columns using "SELECT DISTINCT"
@@ -575,8 +609,12 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      * @return $this
      */
     public function offset(int $number) {
+        if (is_null($number)||$number===false) {
+            unset($this->_db_pending ['offset']);
+            return $this;
+        }
         // Add pending database call which is executed after query type is determined
-        $this->_db_pending [] = array (
+        $this->_db_pending ['offset'] = array (
             'name' => 'offset',
             'args' => array (
                 $number
