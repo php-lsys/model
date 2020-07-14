@@ -532,14 +532,14 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
     
     /**
      * Return up to "LIMIT ..." results
-     * set null or false clear setting
+     * set null clear setting
      * @param integer $number
      *        	maximum results to return
      * @return $this
      */
-    public function limit($number) {
+    public function limit(?int $number) {
         // Add pending database call which is executed after query type is determined
-        if (is_null($number)||$number===false) {
+        if (is_null($number)) {
             unset($this->_db_pending ['limit']);
             return $this;
         }
@@ -576,8 +576,8 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      *        	starting result number
      * @return $this
      */
-    public function offset(int $number) {
-        if (is_null($number)||$number===false) {
+    public function offset(?int $number) {
+        if (is_null($number)) {
             unset($this->_db_pending ['offset']);
             return $this;
         }
