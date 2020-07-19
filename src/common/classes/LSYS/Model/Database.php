@@ -1,7 +1,6 @@
 <?php
 namespace LSYS\Model;
 use LSYS\Entity\Database\Result;
-use LSYS\Entity\Exception;
 use LSYS\Model\Database\Expr;
 /**
  * @method \LSYS\Model\Database\Builder SQLBuilder(Table $table);
@@ -107,5 +106,5 @@ interface Database extends \LSYS\Entity\Database{
 	 * @param mixed ...$args
 	 * @return Expr
 	 */
-	public function expr($value,array $param);
+	public function expr($value,array $param=[]);
 }

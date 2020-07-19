@@ -5,6 +5,7 @@ use LSYS\Entity;
 use LSYS\Entity\Validation;
 use function LSYS\Model\__ as __;
 use LSYS\Validation\Valid;
+use LSYS\Model\Exception;
 /**
  * 依赖 LSYS\Validation\Valid  
  */
@@ -20,7 +21,7 @@ class ValidEmail implements ValidRule{
         $this->_strict=$strict;
         $this->_allow_empty=$allow_empty;
         if(!class_exists(\LSYS\Validation\Valid::class)){
-            throw new \Exception("plase install it: composer install lsys/validation");
+            throw new Exception("plase install it: composer install lsys/validation");
         }
     }
     /**

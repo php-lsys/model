@@ -1,6 +1,6 @@
 <?php
 namespace LSYS\Model\Database\Swoole;
-use LSYS\Entity\Exception;
+use LSYS\Model\Exception;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
 use LSYS\Model\Database\Expr;
@@ -70,7 +70,7 @@ class MYSQLPool implements \LSYS\Model\Database {
      * 执行SQL
      * @param string $sql
      * @param mixed $data
-     * @throws \LSYS\Entity\Exception
+     * @throws \LSYS\Model\Exception
      */
     protected function _query($sql,$data){
         $this->_last_query=$sql;
@@ -359,7 +359,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         //事务进行时有调用,无法确定是否是事务完全完结.所以这里直接回滚
         $this->rollback();
     }
-    public function expr($value, array $param)
+    public function expr($value, array $param=[])
     {
         return new \LSYS\Model\Database\Swoole\Expr($value, $param);
     }

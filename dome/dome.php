@@ -1,10 +1,9 @@
 <?php
 use Model\ModelUser;
 use Model\EntityUser;
+use LSYS\Model\Database\Builder;
 include_once __DIR__."/boot.php";
 //!!!!注意: 使用 model前必须配置数据库连接 配置方法 参阅 boot.php 文件
-
-
 // CREATE TABLE `user` (
 //     `id` int(11) NOT NULL AUTO_INCREMENT,
 //     `name` varchar(100) DEFAULT NULL,
@@ -20,6 +19,7 @@ $tm=new \LSYS\Model\Table("user");
 //强制查询都在从库查询
 //$tm->db()->queryMode(\LSYS\Model\Database::QUERY_SLAVE_ALL);
 var_dump($tm->dbBuilder()->where("id", "=", 10)->find()->asArray());
+
 
 
 
@@ -39,10 +39,27 @@ print_r($e->asArray());
 $orm=new ModelUser();
 
 $entity=$orm->dbBuilder()->wherePk(1)->find();
-print_r($entity->orm1()->asarray());
-print_r($entity->orm2()->asarray());
-print_r($entity->orm3()->findall()->asarray());
-$t=$entity->orm4();
+print_r($entity->orm1->asarray());
+print_r($entity->orm2->asarray());
+
+print_r($entity->orm3->current()->asArray());
+
+$entity->table()->related()->setBuilderCallback('orm4', function (Builder $builder) {
+    $builder->offset(0)->limit(10);
+    $builder->columnSet(['id']);
+});
+$t=$entity->orm4;
+$res=$t->setPreload('orm1','orm2');
+
+foreach ($res as $entity) {
+    $entity->orm1;
+    //设置字段 肯定在entity上.
+    //数据在 model 上
+}
+
+
+
+
 print_r($t->findall()->asarray());
 print_r($t->countall());
 print_r($entity->asArray());
@@ -53,6 +70,8 @@ print_r($orm->dbBuilder()->countAll());
 
 //事务
 $e=new EntityUser();
+
+
 $e->name="fasdf".rand(0,10000);
 $e1=new EntityUser();
 $e1->name="fasdf".rand(0,10000);

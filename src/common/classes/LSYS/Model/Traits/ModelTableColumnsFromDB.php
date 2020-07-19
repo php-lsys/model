@@ -8,6 +8,9 @@ trait ModelTableColumnsFromDB{
 	 * @var \LSYS\Model\Database\ColumnSet[]
 	 */
 	private static $_table_columns_cache;
+	/**
+	 * @return \LSYS\Model\Database\ColumnSet
+	 */
 	private function _tableColumns(){
 	    $table_name=$this->tableName();
 	    if (!isset(self::$_table_columns_cache[$table_name])){

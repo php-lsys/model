@@ -5,6 +5,7 @@ use LSYS\Entity;
 use LSYS\Entity\Validation;
 use function LSYS\Model\__ as __;
 use LSYS\Validation\Valid;
+use LSYS\Model\Exception;
 class ValidStr implements ValidRule{
     const ALPHA=1;
     const ALPHA_NUMERIC=2;
@@ -23,7 +24,7 @@ class ValidStr implements ValidRule{
         $this->_type=$type;
         $this->_allow_empty=$allow_empty;
         if(!class_exists(\LSYS\Validation\Valid::class)){
-            throw new \Exception("plase install it: composer install lsys/validation");
+            throw new Exception("plase install it: composer install lsys/validation");
         }
     }
     /**

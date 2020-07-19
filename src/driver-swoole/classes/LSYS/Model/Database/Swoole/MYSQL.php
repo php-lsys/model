@@ -1,6 +1,6 @@
 <?php
 namespace LSYS\Model\Database\Swoole;
-use LSYS\Entity\Exception;
+use LSYS\Model\Exception;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
 use LSYS\Model\Database\Expr;
@@ -444,7 +444,7 @@ class MYSQL implements \LSYS\Model\Database {
             $this->_master_mysql=null;
         }
     }
-    public function expr($value, array $param)
+    public function expr($value, array $param=[])
     {
         return new \LSYS\Model\Database\Swoole\Expr($value, $param);
     }

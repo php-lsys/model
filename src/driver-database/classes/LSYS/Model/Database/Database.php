@@ -2,7 +2,7 @@
 namespace LSYS\Model\Database;
 use LSYS\Database\DI;
 use LSYS\Model\Database\Database\Result;
-use LSYS\Entity\Exception;
+use LSYS\Model\Exception;
 use LSYS\Entity\Table;
 use LSYS\Database\ConnectSlave;
 use LSYS\Database\ConnectMaster;
@@ -138,21 +138,21 @@ abstract class Database implements \LSYS\Model\Database {
     public function quoteColumn($column)
     {
         if ($column instanceof Expr) {
-            $column=new \LSYS\Database\Expr($column->value());
+            $column=new \LSYS\Database\Expr($column->compile($this));
         }
         return $this->_db->getConnect()->quoteColumn($column);
     }
     public function quoteTable($table)
     {
         if ($table instanceof Expr) {
-            $table=new \LSYS\Database\Expr($table->value());
+            $table=new \LSYS\Database\Expr($table->compile($this));
         }
        return $this->_db->getConnect()->quoteTable($table);
     }
     public function quoteValue($value, $column_type=null)
     {
         if ($value instanceof Expr) {
-            $value=new \LSYS\Database\Expr($value->value());
+            $value=new \LSYS\Database\Expr($value->compile($this));
         }
         return $this->_db->getConnect()->quote($value);
     }
@@ -201,7 +201,7 @@ abstract class Database implements \LSYS\Model\Database {
             $this->_db->disConnect();
         }
     }
-    public function expr($value,array $param) {
+    public function expr($value,array $param=[]) {
         return (new \LSYS\Model\Database\Database\Expr($value,$param));
     }
     /**

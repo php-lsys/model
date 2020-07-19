@@ -11,7 +11,7 @@ return array(
 		//PMYSQLi 配置
 		"type"=>\LSYS\Database\MYSQLi::class,
 		"charset"=>"UTF8",
-		"table_prefix"=>"",
+		"table_prefix"=>"l_",
 		"connection"=>array(
 			//单数据库使用此配置
 			'database' => 'test',

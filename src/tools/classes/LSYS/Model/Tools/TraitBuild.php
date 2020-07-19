@@ -3,6 +3,8 @@ namespace LSYS\Model\Tools;
 use LSYS\Model\Database;
 use LSYS\Entity\ColumnSet;
 use LSYS\Entity\Column;
+use LSYS\Model\Exception;
+use LSYS\Model\Related;
 abstract class TraitBuild{
     private $_dir;
     private $_namespace;
@@ -479,6 +481,14 @@ abstract class TraitBuild{
             $doc[]=" * @property {$type} \${$name}\t{$commit}";
         }
         $doc[]=" * @method {$model_name} table()";
+        
+        if (class_exists($model_name)&&method_exists($model_name, 'relatedFactory')) {
+            $related=call_user_func([$model_name,'relatedFactory']);
+            if ($related instanceof Related) {
+                
+            }
+        }
+        
         $doc=implode("\n", $doc);
         return "/**\n{$doc}\n*/";
         //格式如下
@@ -497,16 +507,16 @@ abstract class TraitBuild{
         $doc[]=" * @method {$model_name} table()";
         $doc[]=" * @method {$entity_name} find()";
         $doc[]=" * @method {$entity_name} queryOne(\$sql,\$column_set=null,array \$patch_columns=[])";
-        $doc[]=" * @method \LSYS\Entity\EntitySet|{$entity_name}[] findAll()";
-        $doc[]=" * @method \LSYS\Entity\EntitySet|{$entity_name}[] queryAll(\$sql,\$column_set=null,array \$patch_columns=[])";
+        $doc[]=" * @method \LSYS\Model\EntitySet|{$entity_name}[] findAll()";
+        $doc[]=" * @method \LSYS\Model\EntitySet|{$entity_name}[] queryAll(\$sql,\$column_set=null,array \$patch_columns=[])";
         $doc=implode("\n", $doc);
         return "/**\n{$doc}\n*/";
         //示例格式如下
         /**
          * @method \Model\EntityUser find()
          * @method \Model\EntityUser queryOne($sql,$column_set=null,array $patch_columns=[])
-         * @method \LSYS\Entity\EntitySet|\Model\EntityUser[] findAll()
-         * @method \LSYS\Entity\EntitySet|\Model\EntityUser[] queryAll($sql,$column_set=null,array $patch_columns=[])
+         * @method \LSYS\Model\EntitySet|\Model\EntityUser[] findAll()
+         * @method \LSYS\Model\EntitySet|\Model\EntityUser[] queryAll($sql,$column_set=null,array $patch_columns=[])
          */
     }
     /**
@@ -561,12 +571,11 @@ abstract class TraitBuild{
     }
     /**
      * 创建代码
-     * @throws \Exception
      */
     public function build(){
         $class_dir=rtrim($this->_dir,"\/")."/";
         if(!is_dir($class_dir)){
-            throw new \Exception(strtr("dir [:dir] does not exist.", array(":dir"=>$class_dir)));
+            throw new Exception(strtr("dir [:dir] does not exist.", array(":dir"=>$class_dir)));
         }
         $namespace=$this->_namespace;
         if (empty($namespace))$namespace=null;
