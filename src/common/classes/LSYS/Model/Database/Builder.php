@@ -37,7 +37,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      * @return Entity
      */
     public function find() {
-        $field=$this->_buildField($this->getColumnSet());
+        $field=$this->_buildField($this->_columnSet());
         $sql = $this->_buildSelect ($field,1);
         return $this->queryOne($sql,$this->_column_set);
     }
@@ -67,9 +67,16 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      * @param array|EntityColumnSet|string $column_set
      * @return static
      */
-    public function columnSet($column_set) {
-        $this->_column_set=$this->_asEntityColumnSet($column_set);
+    public function columnSet($column_set,array $patch_columns=[]) {
+        $this->_column_set=$this->_asEntityColumnSet($column_set,$patch_columns);
         return $this;
+    }
+    /**
+     * 获取已设置的字段列表
+     * @return EntityColumnSet|NULL
+     */
+    public function columnGet() {
+        return $this->_column_set;
     }
     /**
      * 请求当前表一批记录
@@ -102,7 +109,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      * @return EntitySet
      */
     public function findAll() {
-        $field=$this->_buildField ($this->getColumnSet());
+        $field=$this->_buildField ($this->_columnSet());
         $sql = $this->_buildSelect ($field);
         return $this->queryAll($sql,$this->_column_set);
     }
@@ -114,16 +121,31 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
         $sql = $this->_buildSelect ("count(*) as total");
         return $this->table()->db()->queryCount($sql,[],"total");
     }
-    public function getColumnSet() {
+    /**
+     * 获取构造查询字段对象
+     * @return \LSYS\Entity\ColumnSet
+     */
+    private function _columnSet() {
         if ($this->_column_set){
             $columnset=$this->_column_set->asColumnSet($this->table()->tableColumns(),true);
         }else $columnset=$this->table()->tableColumns();
         return $columnset;
     }
+    /**
+     * 重置查询条件
+     * @return $this
+     */
     public function reset() {
         $this->_db_pending = array ();
         return $this;
     }
+    /**
+     * 编译WHERE操作
+     * @param mixed $field
+     * @param string $op
+     * @param mixed $value
+     * @return string
+     */
     protected function _buildWhereOp($field, string $op, $value):string {
         $db=$this->table()->db();
         $columntype=$this->columnType($field);
@@ -141,6 +163,12 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
         }
         return '';
     }
+    /**
+     * 编译JOIN操作
+     * @param string $where_fragment
+     * @param string $op
+     * @param string $where
+     */
     protected function _buildWhereJoin($where_fragment,string  $op,&$where) {
         $swhere = trim ( $where );
         if (empty ( $swhere ) || substr ( $swhere, - 1, 1 ) == '(') $where .= ' ' . $where_fragment . ' ';
@@ -148,7 +176,6 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
     }
     /**
      * 编译条件
-     *
      * @return string
      */
     protected function _buildWhere():string {
@@ -178,11 +205,24 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
         }
         return $where;
     }
+    /**
+     * 编译GroupHaving操作
+     * @param mixed $field
+     * @param string $op
+     * @param mixed $value
+     * @return string
+     */
     protected function _buildGroupHavingOp($field, string $op, $value):string{
         $db=$this->table()->db();
         $columntype=$this->columnType($field);
         return $db->quoteColumn ( $field ) . ' ' . $op . " " . $db->quoteValue ( $value,$columntype ) . " ";
     }
+    /**
+     * 编译Having操作
+     * @param string $having_fragment
+     * @param string $op
+     * @param string $having
+     */
     protected function _buildGroupHavingJoin($having_fragment, string $op,&$having){
         $shaving = trim ( $having );
         if (empty ( $shaving ) || substr ( $shaving, - 1, 1 ) == '(') $having .= ' ' . $having_fragment . ' ';
@@ -190,7 +230,6 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
     }
     /**
      * 编译GROUP
-     *
      * @return string
      */
     protected function _buildGroup():string {
@@ -316,32 +355,45 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
         $group = $this->_buildGroup ();
         return $sql . $where . $group . $order . $limit . $offset;
     }
+    /**
+     * 编译查询字段
+     * @param ColumnSet $columnset
+     * @return string
+     */
     protected function _buildField(ColumnSet $columnset):string {
         $columns=$columnset->asArray(ColumnSet::TYPE_FIELD);
         $db = $this->table()->db();
-        $_field=array();
+        $add=$_field=array();
         $pkname=$this->table()->primaryKey();
         if (!is_array($pkname)) {
             if(array_search($pkname, $columns,true)===false){
-                array_unshift($columns, $pkname);
+                $add[]=$pkname;
             }
         }else{
             foreach ($pkname as $tname){
                 if(array_search($tname, $columns,true)===false){
-                    array_unshift($columns, $tname);
+                    $add[]=$pkname;
                 }
             }
         }
-        foreach ($columns as $value)
+        foreach ($add as $value)
         {
             array_push($_field, $db->quoteColumn(array($this->table()->tableName().".".$value,$value)));
+        }
+        foreach ($columnset as $value)
+        {
+            if ($value instanceof \LSYS\Model\Column) {
+                $value=$value->sql();
+            }else $value=$db->quoteColumn(array($this->table()->tableName().".".$value->name(),$value->name()));
+            array_push($_field, $value);
         }
         $field=implode(",", $_field);
         return $field;
     }
     /**
-     * set primary_key = $pk where
-     * @param string $pk
+     * 通过主键查询
+     * 联合主键请使用数组
+     * @param string|array $pk
      * @return static
      */
     public function wherePk($pk){
@@ -357,7 +409,6 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
     }
     /**
      * Alias of andWhere()
-     *
      * @param mixed $column
      *        	column name or array($column, $alias) or object
      * @param string $op
@@ -394,7 +445,7 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
      * @return mixed|NULL
      */
     protected function columnType($column){
-        $columnset=$this->getColumnSet();
+        $columnset=$this->_columnSet();
         if ($column instanceof Expr) {
             $column=$column->compile( $this->table()->db());
             $p=strpos($column, '.');

@@ -14,6 +14,7 @@ class ValidEmail implements ValidRule{
     protected $_strict;
     protected $_allow_empty;
     /**
+     * 校验是否是邮箱
      * @param bool $dns 是否检测DNS
      */
     public function __construct(bool $dns=false,bool $allow_empty=true,bool $strict=FALSE) {

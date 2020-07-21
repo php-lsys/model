@@ -9,6 +9,7 @@ class ValidStrlen implements ValidRule{
     protected $_max;
     protected $_allow_empty;
     /**
+     * 校验字符串长度
      * @param int $min 存在时表示不小于此值
      * @param int $max 存在时表示不大于此值
      * @param bool $allow_empty 是否不能为空

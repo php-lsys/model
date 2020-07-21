@@ -4,6 +4,7 @@
 	"license" : "Apache-2.0",
 	"description" : "lsys module model",
 	"require-dev" : {
+		"lsys/profiler" : "~0.0.1",
 		"lsys/db" : "~0.0.1",
 		"lsys/swoole-thrift" : "~0.0.1",
 		"lsys/validation" : "~0.0.1",

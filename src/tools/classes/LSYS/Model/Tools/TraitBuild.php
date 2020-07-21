@@ -480,15 +480,32 @@ abstract class TraitBuild{
             $type=$this->toCodeType($column);
             $doc[]=" * @property {$type} \${$name}\t{$commit}";
         }
-        $doc[]=" * @method {$model_name} table()";
-        
-        if (class_exists($model_name)&&method_exists($model_name, 'relatedFactory')) {
-            $related=call_user_func([$model_name,'relatedFactory']);
+        if (class_exists($model_name,true)&&method_exists($model_name, 'relatedFactory')) {
+            $related=call_user_func([(new \ReflectionClass($model_name))->newInstance(),'relatedFactory']);
             if ($related instanceof Related) {
-                
+                foreach ($related->getColumns() as $related_col){
+                    $_model_name=$related->modelName($related_col);
+                    if (empty($_model_name))continue;
+                    try{
+                        $model=(new \ReflectionClass($_model_name))->newInstance();
+                        $entity_name=$model->entityClass();
+                    }catch(\Exception $e){
+                        $this->message($_model_name, $e->getMessage());
+                        continue;
+                    }
+                    if ($related->isHasOne($related_col)) {
+                        $doc[]=" * @property-read \\{$entity_name} \${$related_col} define from hasOne";
+                    }
+                    if ($related->isBelongsTo($related_col)) {
+                        $doc[]=" * @property-read \\{$entity_name} \${$related_col} define from BelongsTo";
+                    }
+                    if ($related->isHasMany($related_col)) {
+                        $doc[]=" * @property-read \LSYS\Model\EntitySet|\\{$entity_name}[] \${$related_col} define from HasMany";
+                    }
+                }
             }
         }
-        
+        $doc[]=" * @method {$model_name} table() return {$model_name} object";
         $doc=implode("\n", $doc);
         return "/**\n{$doc}\n*/";
         //格式如下

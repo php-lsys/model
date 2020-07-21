@@ -7,7 +7,9 @@ use LSYS\Entity\ColumnSet;
 trait ModelTableColumnsFromFactory{
     private static $_table_columns_code;
     /**
-     * 自定义表字段列表,请重写此方法
+     * 自定义表字段列表
+     * 请重写此方法,返回字段集合
+     * @rewrite
      * @return \LSYS\Entity\ColumnSet
      */
     private function tableColumnsFactory(){

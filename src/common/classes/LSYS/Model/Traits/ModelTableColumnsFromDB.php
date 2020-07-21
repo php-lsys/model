@@ -9,6 +9,7 @@ trait ModelTableColumnsFromDB{
 	 */
 	private static $_table_columns_cache;
 	/**
+	 * 从表中解析字段数据 
 	 * @return \LSYS\Model\Database\ColumnSet
 	 */
 	private function _tableColumns(){
@@ -21,13 +22,14 @@ trait ModelTableColumnsFromDB{
 	    return self::$_table_columns_cache[$table_name];
 	}
 	/**
+	 * 表字段集合
 	 * @return \LSYS\Model\Database\ColumnSet
 	 */
 	public function tableColumns(){
 	    return $this->_tableColumns()->columnSet();
 	}
 	/**
-	 * primary key name
+	 * 主键字段
 	 * @return string|array
 	 */
 	public function primaryKey() {

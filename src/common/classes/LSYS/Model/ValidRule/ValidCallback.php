@@ -7,6 +7,12 @@ class ValidCallback implements ValidRule{
     protected $_fun;
     protected $_param;
     protected $_allow_null;
+    /**
+     * 通过回调函数校验
+     * @param string|callable $fun
+     * @param bool $allow_null
+     * @param array $param
+     */
     public function __construct($fun,bool $allow_null,$param=array(":value")) {
         $this->_fun=$fun;
         $this->_param=$param;

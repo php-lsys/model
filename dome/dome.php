@@ -2,6 +2,8 @@
 use Model\ModelUser;
 use Model\EntityUser;
 use LSYS\Model\Database\Builder;
+use LSYS\Profiler\Utils;
+use function GuzzleHttp\json_decode;
 include_once __DIR__."/boot.php";
 //!!!!注意: 使用 model前必须配置数据库连接 配置方法 参阅 boot.php 文件
 // CREATE TABLE `user` (
@@ -11,6 +13,8 @@ include_once __DIR__."/boot.php";
 //     `code` varchar(100) DEFAULT NULL,
 //     PRIMARY KEY (`id`)
 //     ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+
 
 //开箱即用方式
 $tm=new \LSYS\Model\Table("user");
@@ -39,10 +43,9 @@ print_r($e->asArray());
 $orm=new ModelUser();
 
 $entity=$orm->dbBuilder()->wherePk(1)->find();
-print_r($entity->orm1->asarray());
-print_r($entity->orm2->asarray());
-
-print_r($entity->orm3->current()->asArray());
+print_r($entity->orm1->asArray());
+print_r($entity->orm2->asArray());
+print_r($entity->orm3->asArray());
 
 $entity->table()->related()->setBuilderCallback('orm4', function (Builder $builder) {
     $builder->offset(0)->limit(10);
@@ -60,8 +63,8 @@ foreach ($res as $entity) {
 
 
 
-print_r($t->findall()->asarray());
-print_r($t->countall());
+print_r($t->asarray());
+print_r($t->fetchCount());
 print_r($entity->asArray());
 $orm->db()->foundRows();
 print_r($orm->dbBuilder()->reset()->where("id", ">", 30)->findAll()->asArray());

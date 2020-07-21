@@ -8,7 +8,7 @@ class ValidEquals implements ValidRule{
     protected $_value;
     protected $_in_array;
     /**
-     * 等于某值
+     * 校验是否等于某值
      * $in_array 为true时,$value为数组,表示是其中一个即可
      * @param string|array $value
      * @param bool $in_array

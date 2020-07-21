@@ -9,6 +9,7 @@ class ValidNum implements ValidRule{
     protected $_max;
     protected $_allow_empty;
     /**
+     * 检验是否在某数字范围内
      * @param int $min 存在时表示不小于此值
      * @param int $max 存在时表示不大于此值
      * @param bool $allow_empty 是否不能为空

@@ -31,29 +31,10 @@ class ModelUser extends \LSYS\Model{
     public function relatedFactory(){
         return (new \LSYS\Model\Related())
             ->addHasOne('orm1', __CLASS__, 'code')
+            ->addBelongsTo('orm2', __CLASS__, 'code')
+            ->addHasMany('orm3', __CLASS__, 'code')
+            ->addThroughHasMany('orm4', __CLASS__,['user','t'],'id','code')
         ;
-    }
-//     public function belongsTo():array {
-//         return [
-//             'orm2'=>[
-//                 'model'=>__CLASS__,
-//                 'foreign_key'=>'code'
-//             ]
-//         ];
-//     }
-    public function hasMany() :array{
-        return [
-            'orm3'=>[
-                'model'=>__CLASS__,
-                'foreign_key'=>'code'
-            ],
-            'orm4'=>[
-                'model'=>__CLASS__,
-                'through'=>['user','t'],
-                'far_key'=>'id',
-                'foreign_key'=>'code'
-            ]
-        ];
     }
     public function dataList() {
         return $this->dbBuilder()->where("id",">=", 1)->findAll();

@@ -19,13 +19,13 @@ class DomeModelBuild extends TraitBuild{
 //         foreach ($this->_db->query($sql) as $value) {
 //             $out[]=array_shift($value);
 //         }
-        return ["user"];//$out;
+        return [$this->_db->tablePrefix()."user"];//$out;
     }
     public function tablePrefix():string{
         return $this->_db->tablePrefix();
     }
     public function message(string $table,string $msg):void{
-        echo $table.$msg."\n";
+        echo $table.":".$msg."\n";
     }
     //yaf model 生成
 //     protected function modelFileName(string $model_name):string{

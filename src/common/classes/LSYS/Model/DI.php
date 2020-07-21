@@ -1,7 +1,7 @@
 <?php
 namespace LSYS\Model;
 /**
- * @method \LSYS\Model\Database modelDB()
+ * @method \LSYS\Model\Database modelDB() 模型使用的默认数据库操作对象,虚方法,必须重写
  */
 class DI extends \LSYS\DI{
     /**

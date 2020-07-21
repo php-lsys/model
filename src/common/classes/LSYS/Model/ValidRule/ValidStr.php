@@ -7,18 +7,19 @@ use function LSYS\Model\__ as __;
 use LSYS\Validation\Valid;
 use LSYS\Model\Exception;
 class ValidStr implements ValidRule{
-    const ALPHA=1;
-    const ALPHA_NUMERIC=2;
-    const ALPHA_DASH=3;
-    const DIGIT=4;
-    const NUMERIC=5;
-    const COLOR=6;
-    const NOT_EMPTY=7;
-    const IP=8;
+    const ALPHA=1;//字符串为字母
+    const ALPHA_NUMERIC=2;//字符串为字母加数字
+    const ALPHA_DASH=3;//字符串为字母下划线
+    const DIGIT=4;//字符串为整数
+    const NUMERIC=5;//字符串为纯数字
+    const COLOR=6;//字符串为颜色值
+    const NOT_EMPTY=7;//字符串不能为空
+    const IP=8;//字符串是IP地址
     protected $_type;
     protected $_allow_empty;
     /**
-     * @param int $type 是否检测DNS
+     * 校验字符串指定类型
+     * @param int $type 参见常量 
      */
     public function __construct(int $type,bool $allow_empty=true) {
         $this->_type=$type;

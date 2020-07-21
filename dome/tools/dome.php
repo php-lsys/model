@@ -1,6 +1,7 @@
 <?php
 use LSYS\Config\File;
-include_once __DIR__."/../../vendor/autoload.php";
+$load=include_once __DIR__."/../../vendor/autoload.php";
+$load->setPsr4("Model\\", dirname(__DIR__)."/Model");
 include_once __DIR__."/ModelBuild.php";
 File::dirs(array(
     dirname(__DIR__)."/config",

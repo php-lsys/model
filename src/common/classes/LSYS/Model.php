@@ -1,17 +1,39 @@
 <?php
 namespace LSYS;
-use LSYS\Entity\EntityColumnSet;
 use LSYS\Entity\Table;
 use LSYS\Model\Database;
 use LSYS\Model\DI;
 use LSYS\Model\EntitySet;
 use function LSYS\Model\__;
 use LSYS\Model\Related;
-use LSYS\Model\Database\Database\ArrayResult;
 use LSYS\Model\Database\Builder;
+use LSYS\Entity\Column;
+use LSYS\Entity\ColumnSet;
+use LSYS\Entity\EntityColumnSet;
 abstract class Model implements Table{
     private $_db;
     private $_related;
+    /**
+     * 返回实体名
+     * @rewrite
+     * @return string
+     */
+    abstract public function entityClass():string;
+    /**
+     * 创建关系对象
+     * @rewrite
+     * @return Related
+     */
+    protected function relatedFactory() {
+        return new Related();
+    }
+    /**
+     * {@inheritDoc}
+     * @return \LSYS\Model\Database\Builder
+     */
+    public function dbBuilder() {
+        return $this->db()->SQLBuilder($this);
+    }
     /**
      * @return Database
      */
@@ -20,176 +42,34 @@ abstract class Model implements Table{
         if($this->_db)return $this->_db;
         return DI::get()->modelDB();
     }
-    private function builderPkWheres(Builder $dbbuilder,$cols,$vals) {
-        $dbbuilder->whereOpen();
-        foreach ($vals as $value) {
-            $dbbuilder->orWhereOpen();
-            foreach ($cols as $key=>$col) {
-                $dbbuilder->where($col, "=", $value[$key]);
-            }
-            $dbbuilder->orWhereClose();
-        }
-        $dbbuilder->whereClose();
-    }
-    private function pksKey($keys) {
-        return serialize($keys);
-    }
-	/**
-	 * 批量得到关系数据
-	 * @param EntitySet $entity_set
-	 * @param string $column
-	 * @return NULL|\LSYS\Entity|\LSYS\Model\EntitySet[]|\LSYS\Entity[]
-	 */
-    public function RelatedFinds(EntitySet $entity_set,$column) {
+    /**
+     * 一对多关系结果数量
+     * @param string $column
+     * @return ?int
+     */
+    public function hasManyCount(Entity $entity,string $column) {
         $model=$this->_relatedModel($column);
         if (is_null($model))return null;
         $related=$this->related();
-        $out=[];
-        if ($related->isBelongsTo($column)) {
-            $vals=[];
-            $foreign_key=$related->getBelongsToForeignKey($column);
-            $keys=$model->primaryKey();
-            if (!is_array($keys)) {
-                foreach ($entity_set as $entity) {
-                    $val=$entity->__get(strval($foreign_key));
-                    if ($related->isFilter($val)) {
-                        $out[$val]=$this->_createEntity($model);
-                        continue;
-                    }
-                    $vals[]=$val;
-                }
-                $dbbuilder=$model->dbBuilder();
-                $dbbuilder->where($keys, "in", $vals);
-                $related->runBuilderCallback($column,$dbbuilder);
-                foreach ($dbbuilder->findAll() as $entity){
-                    $out[$entity->__get($keys)]=$entity;
-                }
-            }else{
-                $vals=[];
-                foreach ($entity_set as $entity) {
-                    $val=[];
-                    foreach ((array)$foreign_key as $_foreign_key){
-                        $val[$_foreign_key]=$entity->__get(strval($_foreign_key));
-                    }
-                    if ($related->isFilter($val)) {
-                        $out[$this->pksKey($val)]=$this->_createEntity($model);
-                        continue;
-                    }
-                    $vals[]=$val;
-                }
-                $dbbuilder=$model->dbBuilder();
-                $this->builderPkWheres($dbbuilder, array_combine($keys, $keys), $vals);
-                $related->runBuilderCallback($column,$dbbuilder);
-                foreach ($dbbuilder->findAll() as $entity){
-                    $val=[];
-                    foreach ($keys as $value) {
-                        $val[$value]=$entity->__get($value);
-                    }
-                    $out[$this->pksKey($val)]=$entity;
-                }
-                foreach ($vals as $val){
-                    if (isset($out[$this->pksKey($val)]))continue;
-                    $out[$this->pksKey($val)]=$this->_createEntity($model);;
-                }
-            }
-        }
-        if ($related->isHasOne($column)) {
-            $vals=[];
-            foreach ($entity_set as $entity) {
-                if (!$entity->loaded()){
-                    $out[]= $this->_createEntity($model);
-                }
-                $vals[]=$entity->pk();
-            }
-            $col = $related->getHasOneForeignKey($column);
-            $dbbuilder=$model->dbBuilder();
-            $this->builderPkWheres($dbbuilder, array_combine($col, $col), $vals);
-            $related->runBuilderCallback($column,$dbbuilder);
-            foreach ($dbbuilder->findAll() as $entity){
-                $out[$entity->__get($col)]=$entity;
-            }
-        }
-        if ($related->isHasMany($column)) {
-            $vals=[];
-            foreach ($entity_set as $entity) {
-                $vals[]=$entity->pk();
-            }
-            $foreign_key=$related->getHasManyForeignKey($column);
-            $dbbuilder=$model->dbBuilder();
-            if ($related->isHasManyThrough($column)) {
-                // 中间表
-                $through=$related->getHasManyThrough($column);
-                if(is_array($through)&&isset($through[1])){
-                    $column_table=$this->db()->quoteTable($through[1]);
-                }else $column_table=$this->db()->quoteTable($through);
-                
-                $far_key=$related->getHasManyFarKey($column);
-                
-                // 中间表分别存放两个表的两个主键
-                $join_col1 = $this->db()->expr($column_table . '.' . $this->db()->quoteColumn($far_key));
-                $join_col2 = $model->tableName() . '.' . $model->primaryKey();
-                $dbbuilder->join ($through);
-                $dbbuilder->on ( $join_col1, '=', $join_col2 );
-                // 连接中间表,中间表存储当前主键的字段 = 当前主键
-                if (is_array($foreign_key)) {
-                    $col=[];
-                    foreach ($foreign_key as $_foreign_key) {
-                        $col[$_foreign_key] = $this->db()->expr($column_table . '.' . $_foreign_key);
-                    }
-                }else{
-                    $col = $this->db()->expr($column_table . '.' . $foreign_key);
-                }
-            }else{
-                if (is_array($foreign_key)) {
-                    $col=array_combine($foreign_key, $foreign_key);
-                }else{
-                    $col = $foreign_key;
-                }
-            }
-            $this->builderPkWheres($dbbuilder, $col, $vals);
-            $related->runBuilderCallback($column,$dbbuilder);
-            $tmp=[];
-            foreach ($dbbuilder->findAll() as $entity) {
-                $tmp[$entity->__get($foreign_key)][]=$entity->exportData();
-            }
-            foreach ($tmp as $key=>$value) {
-                $out[$key]=new EntitySet(
-                    new ArrayResult($value),
-                    $dbbuilder->table()->entityClass(),
-                    $dbbuilder->getColumnSet(),
-                    $dbbuilder->table()
-                );
-            }
-            foreach ($entity_set as $entity) {
-                if (isset($out[$entity->pk()]))continue;
-                $out[$key]=new EntitySet(
-                    new ArrayResult([]),
-                    $dbbuilder->table()->entityClass(),
-                    $dbbuilder->getColumnSet(),
-                    $dbbuilder->table()
-                );
-            }
-        }
-        return $out;
+        if (!$related->isHasMany($column))return null;
+        $out=$this->_hasManyCount($model,[$entity], $column);
+        $out=current($out);
+        return $out===false?null:$out;
     }
-	/**
-	 *
-	 * @param string $column
-	 * @return Model|null
-	 */
-    protected function _relatedModel($column) {
-	    $related=$this->related();
-	    $model_name=$related->modelName($column);
-	    if (!isset($model_name))return null;
-	    return (new \ReflectionClass($model_name))->newInstance();
-	}
-	/**
-	 * @param string $entity_name
-	 * @return Entity
-	 */
-	protected function _createEntity(Model $model){
-	    return (new \ReflectionClass($model->entityClass()))->newInstance($model);
-	}
+    /**
+     * 批量查一对多关系结果数量
+     * @param string $column
+     * @return ?int[]
+     */
+    public function hasManysCount(EntitySet $entity_set,string $column) {
+        $model=$this->_relatedModel($column);
+        if (is_null($model))return null;
+        $related=$this->related();
+        if (!$related->isHasMany($column))return null;
+        return $this->_hasManyCount($model,$entity_set, $column);
+    }
+    
+   
 	/**
 	 * 得到关系对象
 	 * @return Related
@@ -201,266 +81,88 @@ abstract class Model implements Table{
 	    return $this->_related;
 	}
 	/**
-	 * 创建关系对象
-	 * @rewrite
-	 * @return Related
-	 */
-	protected function relatedFactory() {
-	    return new Related();
-	}
-	private function builderPkWhere(Builder $dbbuilder,$keys,$vals) {
-	    if (is_array($keys)) {
-	        $dbbuilder->where($keys, "=", $vals);
-	    }else{
-	        $dbbuilder->whereOpen();
-            foreach ($keys as $key=>$col) {
-                $dbbuilder->where($col, "=", $vals[$key]);
-            }
-	        $dbbuilder->whereClose();
-	    }
-	}
-	/**
-	 * 得到关系
+	 * 获取一[本身]对多[对方]关系对象
 	 * @param Entity $entity
 	 * @param string $column
-	 * @param array|string|EntityColumnSet $columns
-	 * @return Entity|static|NULL
+	 * @return NULL|\LSYS\Model\Entity
 	 */
-	public function relatedFind(Entity $entity,string $column) {
+	public function hasMany(Entity $entity,string $column) {
 	    $model=$this->_relatedModel($column);
 	    if (is_null($model))return null;
 	    $related=$this->related();
-	    if ($related->isBelongsTo($column)) {
-	        $val=$entity->__get($related->getBelongsToForeignKey($column));
-	        if ($related->isFilter($val)) {
-	            return $this->_createEntity($model);
-	        }
-	        $dbbuilder=$model->dbBuilder();
-	        $this->builderPkWhere($dbbuilder, $model->primaryKey(), $val);
-	        $related->runBuilderCallback($column,$dbbuilder);
-	        $_entity= $dbbuilder->find();
-	        return $_entity;
-	    }
-	    if ($related->isHasOne($column)) {
-	        if (!$entity->loaded()){
-	            return $this->_createEntity($model);
-	        }
-	        $col = $related->getHasOneForeignKey($column);
-	        $val= $entity->pk();
-	        $dbbuilder=$model->dbBuilder();
-	        $this->builderPkWhere($dbbuilder, $col, $val);
-	        $related->runBuilderCallback($column,$dbbuilder);
-	        $_entity= $dbbuilder->find();
-	        return $_entity;
-	    }
-	    if ($related->isHasMany($column)) {
-	        $dbbuilder=$model->dbBuilder();
-	        
-	        if (!$entity->loaded()) {
-	            return new EntitySet(
-	                new ArrayResult([]),
-	                $dbbuilder->table()->entityClass(),
-	                $dbbuilder->getColumnSet(),
-	                $dbbuilder->table()
-                );
-	        }
-	        
-	        $foreign_key=$related->getHasManyForeignKey($column);
-	        if ($related->isHasManyThrough($column)) {
-	            // 中间表
-	            $through=$related->getHasManyThrough($column);
-	            if(is_array($through)&&isset($through[1])){
-	                $column_table=$this->db()->quoteTable($through[1]);
-	            }else $column_table=$this->db()->quoteTable($through);
-	            
-	            $far_key=$related->getHasManyFarKey($column);
-	            
-	            // 中间表分别存放两个表的两个主键
-	            $join_col1 = $this->db()->expr($column_table . '.' . $this->db()->quoteColumn($far_key));
-	            $join_col2 = $model->tableName() . '.' . $model->primaryKey();
-	            $dbbuilder->join ($through);
-	            $dbbuilder->on ( $join_col1, '=', $join_col2 );
-	            // 连接中间表,中间表存储当前主键的字段 = 当前主键
-	            if (is_array($foreign_key)) {
-	                $col=[];
-	                foreach ($foreign_key as $_foreign_key) {
-	                    $col[$_foreign_key] = $this->db()->expr($column_table . '.' . $_foreign_key);
-	                }
-	            }else{
-	                $col = $this->db()->expr($column_table . '.' . $foreign_key);
-	            }
-	            
-	        }else{
-	            if (is_array($foreign_key)) {
-	                $col=array_combine($foreign_key, $foreign_key);
-	            }else{
-	                $col = $foreign_key;
-	            }
-	        }
-	        $this->builderPkWhere($dbbuilder, $col, $entity->pk());
-	        $related->runBuilderCallback($column,$dbbuilder);
-	        return $dbbuilder->findAll();
-	    }
-	    return null;
+	    if (!$related->isHasMany($column))return null;
+        $out=$this->_hasMany($model,[$entity], $column);
+        $out=current($out);
+        return $out===false?null:$out;
 	}
 	/**
-	 * 是否存在某关系
+	 * 获取一[对方]对一[本身]关系
 	 * @param Entity $entity
-	 * @param string $alias
-	 * @param mixed $far_keys
-	 * @return bool
+	 * @param string $column
+	 * @return NULL|\LSYS\Model\Entity
 	 */
-	public function relatedHas(Entity $entity,string $alias, $far_keys = NULL):bool {
-	    $count = $this->countRelations ($entity,$alias, $far_keys );
-		if ($far_keys === NULL) {
-			return ( bool ) $count;
-		} else {
-			return $count === count ( $far_keys );
-		}
-	}
-	/**
-	 * 是否存某关系集
-	 * @param Entity $entity
-	 * @param string $alias
-	 * @param mixed $far_keys
-	 * @return bool
-	 */
-	public function relatedHasAny(Entity $entity,string $alias, $far_keys = NULL):bool {
-	    return ( bool ) $this->countRelations ($entity,$alias, $far_keys );
-	}
-	/**
-	 * 查询指定关系数量
-	 * @param Entity $entity
-	 * @param string $alias
-	 * @param mixed $far_keys
-	 * @return int
-	 */
-	public function countRelations(Entity $entity,string $column, $far_keys = NULL):int
-	{
-	    $db=$this->db();
+	public function hasOne(Entity $entity,string $column) {
+	    $model=$this->_relatedModel($column);
+	    if (is_null($model))return null;
 	    $related=$this->related();
-	    $has_many=$this->hasMany();
-	    if ($related->isHasManyThrough($column)) return 0;
-	    
-	    $columns=$this->tableColumns()->offsetGet($column);
-	    
-		if ($far_keys === NULL)
-		{
-			$table=$related->getHasManyThrough($column);
-			$column=$db->quoteColumn($related->getHasManyForeignKey($column));
-			$pk=$db->quoteValue($entity->pk(),$columns->getType($this->primaryKey()));
-			$sql=" SELECT COUNT(*) as total FROM {$table} WHERE {$column} = {$pk}";
-			$result=$db->query($sql);
-			return (int)$result->get('total',0);
-		}
-		$far_keys = ($far_keys instanceof Entity) ? $far_keys->pk() : $far_keys;
-		// We need an array to simplify the logic
-		$far_keys = (array) $far_keys;
-		// Nothing to check if the model isn't loaded or we don't have any far_keys
-		if ( ! $far_keys OR ! $entity->loaded()) return 0;
-		
-		$model = $this->_createModel($has_many [$alias]  ['model']);
-		
-		$this->_relationKeyFill($has_many [$alias],'far_key',$model);//中间表存对方主键字段名
-		
-		$table=$db->quoteTable($has_many[$alias]['through']);
-		$column1=$db->quoteColumn($has_many[$alias]['foreign_key']);
-		$column2=$db->quoteColumn($has_many[$alias]['far_key']);
-		$pk=$db->quoteValue($entity->pk(),$columns->getType($this->primaryKey()));
-		$val=$db->quoteValue($far_keys,$columns->getType($model->primaryKey()));
-		
-		$sql=" SELECT COUNT(*) as total FROM {$table} WHERE {$column1} = {$pk} and {$column2} IN {$val} ";
-		$result=$db->query($sql);
-		return (int)$result->get('total',0);
+	    if (!$related->isHasOne($column))return null;
+	    $out=$this->_hasOne($model,[$entity], $column);
+        $out=current($out);
+        return $out===false?null:$out;
 	}
 	/**
-	 * 添加一个关系
+	 * 获取(多或一[对方])对一[本身]关系对象
 	 * @param Entity $entity
-	 * @param string $alias
-	 * @param mixed $far_keys
-	 * @return bool
+	 * @param string $column
+	 * @return NULL|\LSYS\Model\EntitySet
 	 */
-	public function relatedAdd(Entity $entity,string $alias, $far_keys):bool {
-	    $has_many=$this->hasMany();
-	    if (!isset($has_many[$alias])
-	        ||!isset($has_many[$alias]['through'])
-	        ||!isset($has_many [$alias] ['model'])) return false;
-	    
-		$far_keys = ($far_keys instanceof Entity) ? $far_keys->pk () : $far_keys;
-		$db=$this->db();
-		$this->_relationKeyFill($has_many [$alias],'foreign_key',$this);
-		
-		$model = $this->_createModel($has_many [$alias] ['model']);
-		
-		$this->_relationKeyFill($has_many [$alias],'far_key',$model);//中间表存对方主键字段名
-		
-
-		$field=array(
-		    $db->quoteColumn($has_many [$alias] ['foreign_key']),
-		    $db->quoteColumn($has_many [$alias] ['far_key'])
-		);
-		$datas=array();
-		foreach ( ( array ) $far_keys as $key ) {
-		    $data=array(
-		        $db->quoteValue($entity->pk (),$this->tableColumns()->columnSet()->getType($this->primaryKey())),
-		        $db->quoteValue($key,$model->tableColumns()->columnSet()->getType($model->primaryKey()))
-		    );
-		    $data='('.implode(",", $data).')';
-		    array_push($datas,$data);
-		}
-		$str_field=implode(",",$field);
-		$str_data=implode(",", $data);
-		$table=$db->quoteTable($has_many[$alias]['through']);
-		$sql=" INSERT INTO ".$table." (".$str_field.")VALUES {$str_data}";
-		return $db->exec($sql);
+	public function belongsTo(Entity $entity,string $column) {
+	    $model=$this->_relatedModel($column);
+	    if (is_null($model))return null;
+	    $related=$this->related();
+	    if (!$related->isBelongsTo($column))return null;
+	    $out=$this->_belongsTo($model,[$entity], $column);
+        $out=current($out);
+        return $out===false?null:$out;
 	}
 	/**
-	 * 移除一个关系
-	 * @param Entity $entity
-	 * @param string $alias
-	 * @param mixed $far_keys
-	 * @return bool
+	 * 批量获取一[本身]对多[对方]关系对象
+	 * @param EntitySet $entity_set
+	 * @param string $column
+	 * @return NULL|\LSYS\Model\EntitySet[]
 	 */
-	public function relatedRemove(Entity $entity,string $alias, $far_keys = NULL):bool {
-	    $has_many=$this->hasMany();
-	    if (!isset($has_many[$alias])
-	        ||!isset($has_many[$alias]['through'])
-	        ||!isset($has_many [$alias] ['model'])) return false;
-	    
-		$db=$this->db();
-		$this->_relationKeyFill($has_many [$alias],'foreign_key',$this);
-		$pk=$db->quoteValue($entity->pk (),$this->tableColumns()->columnSet()->getType($this->primaryKey()));
-		$where = $db->quoteColumn( $has_many [$alias] ['foreign_key'] ) . '=' . $pk;
-		
-		$far_keys = ($far_keys instanceof Entity) ? $far_keys->pk () : $far_keys;
-		if ($far_keys !== NULL)
-		{
-		    
-		    if (!isset ( $has_many [$alias] )
-		        ||!isset($has_many [$alias] ['model'])
-		        ||! is_subclass_of ( $has_many [$alias] ['model'], __CLASS__ )
-		        ){
-		            $msg=__("column :alias model :model not extends ORM!",array(":alias"=>$alias,":model"=>isset($related [$column] ['model'])?$related [$column] ['model']:'Unkown')) ;
-		            throw new Exception($msg);
-		    }
-		    $model= $this->_createModel($has_many [$alias] ['model']);
-		    $this->_relationKeyFill($has_many [$alias],'far_key',$model);//中间表存对方主键字段名
-		    $column=$db->quoteColumn($has_many[$alias]['far_key']);
-		    $val=$db->quoteValue($far_keys,$model->tableColumns()->columnSet()->getType($model->primaryKey()));
-		    $where.=" AND {$column} IN {$val}";
-		}
-		$table=$db->quoteTable($has_many[$alias]['through']);
-		$sql=" DELETE FROM ".$table." WHERE ".$where;
-		return $db->exec($sql);
+	public function hasManys(EntitySet $entity_set,string $column) {
+	    $model=$this->_relatedModel($column);
+	    if (is_null($model))return null;
+	    $related=$this->related();
+	    if (!$related->isHasMany($column))return null;
+	    return $this->_hasMany($model,$entity_set, $column);
 	}
-
 	/**
-	 * 返回实体名
-	 * @return string
+	 * 批量获取一[对方]对一[本身]关系
+	 * @param EntitySet $entity_set
+	 * @param string $column
+	 * @return NULL|\LSYS\Entity[]
 	 */
-	public function entityClass():string
-	{
-	    return Entity::class;
+	public function hasOnes(EntitySet $entity_set,string $column) {
+	    $model=$this->_relatedModel($column);
+	    if (is_null($model))return null;
+	    $related=$this->related();
+	    if (!$related->isHasOne($column))return null;
+	    return $this->_hasOne($model,$entity_set, $column);
+	}
+	/**
+	 * 批量获取(多或一[对方])对一[本身]关系对象
+	 * @param EntitySet $entity_set
+	 * @param string $column
+	 * @return NULL|\LSYS\Entity[]
+	 */
+	public function belongsTos(EntitySet $entity_set,string $column) {
+	    $model=$this->_relatedModel($column);
+	    if (is_null($model))return null;
+	    $related=$this->related();
+	    if (!$related->isBelongsTo($column))return null;
+	    return $this->_belongsTo($model,$entity_set, $column);
 	}
 	/**
 	 * 得到当前模型的完整表名
@@ -470,10 +172,451 @@ abstract class Model implements Table{
 	    return $this->db()->quoteTable($this->tableName());
 	}
 	/**
-	 * {@inheritDoc}
-	 * @return \LSYS\Model\Database\Builder
+	 * 一对多关系结果数量
+	 * @param string $column
+	 * @return int[]
 	 */
-	public function dbBuilder() {
-	    return $this->db()->SQLBuilder($this);
+	private function _hasManyCount(Model $model,$entity_set,string $column) {
+	    $related=$this->related();
+	    //一[本身]对多[对方]关系
+	    $out=[];
+	    $foreign_key=$related->getHasManyForeignKey($column);
+	    if (!is_array($foreign_key)) {
+	        $vals=[];
+	        foreach ($entity_set as $entity) {
+	            $vals[]=strval($entity->pk());
+	        }
+	        if (empty($vals))return $out; 
+	        $dbbuilder=$model->dbBuilder();
+	        if ($related->isHasManyThrough($column)) {
+	            // 中间表
+	            $through=$related->getHasManyThrough($column);
+	            if(is_array($through)&&isset($through[1])){
+	                $column_table_=$through[1];
+	                $column_table=$this->db()->quoteTable($column_table_);
+	            }else{
+	                $column_table_=$through;
+	                $column_table=$this->db()->quoteTable($column_table_);
+	            }
+	            //$foreign_key 中间表本身主键字段
+	            //$far_key 中间表存对方主键字段
+	            $far_key=strval($related->getHasManyFarKey($column));//中间表存本身字段名
+	            // 中间表分别存放两个表的两个主键
+	            $join_col1 = $this->db()->expr($column_table . '.' . $this->db()->quoteColumn($far_key));
+	            $join_col2 = $model->tableName() . '.' . $model->primaryKey();
+	            $dbbuilder->join ($through);
+	            $dbbuilder->on ( $join_col1, '=', $join_col2 );//中间表连对方模型
+	            // 连接中间表,中间表存储当前主键的字段 = 当前主键
+	            $col = $this->db()->expr($column_table . '.' . $foreign_key);
+	            $dbbuilder->where($col, "in", $vals);
+	            $rc=$column_table_ . '_' . $foreign_key;
+	            $ac=$column_table . '.' . $foreign_key." as ".$rc;
+	            $dbbuilder->columnSet(new ColumnSet([
+	                new Column($rc,$ac),
+	                new Column('total','count(*) as total'),
+	            ]));
+	        }else{
+	            //$foreign_key 对方存本身主键字段
+	            $rc = $col = strval($foreign_key);
+	            $dbbuilder->where($col, "in", $vals);
+	            $dbbuilder->columnSet(new ColumnSet([
+	                new Column($rc),
+	                new Column('total','count(*) as total'),
+	            ]));
+	        }
+	        $dbbuilder->groupBy($col);
+	        $related->runBuilderCallback($column,$dbbuilder);
+	        foreach ($dbbuilder->findAll() as $entity) {
+	            $out[$entity->__get($rc)]=intval($entity->__get('total'));
+	        }
+	        foreach ($entity_set as $entity) {
+	            $pk=$entity->pk();
+	            if (isset($out[$pk]))continue;
+	            $out[$pk]=0;
+	        }
+	    }else{
+	        $vals=[];
+	        foreach ($entity_set as $entity) {
+	            $vals[]=(array)$entity->pk();
+	        }
+	        if (empty($vals))return $out;
+	        $dbbuilder=$model->dbBuilder();
+	        if ($related->isHasManyThrough($column)) {
+	            // 中间表
+	            $through=$related->getHasManyThrough($column);
+	            if(is_array($through)&&isset($through[1])){
+	                $column_table_=$through[1];
+	                $column_table=$this->db()->quoteTable($column_table_);
+	            }else{
+	                $column_table_=$through;
+	                $column_table=$this->db()->quoteTable($column_table_);
+	            }
+	            //$foreign_key 中间表本身主键字段
+	            //$far_key 中间表存对方主键字段
+	            $far_key=$related->getHasManyFarKey($column);//[对方表字段=>中间表字段]
+	            $model_key=$model->primaryKey();
+	            if (!is_array($model_key)) $far_key=[$model_key=>strval($far_key)];
+	            $dbbuilder->join ($through);
+	            foreach ($model_key as $_model_key){
+	                $join_col1 = $this->db()->expr($column_table . '.' . $far_key[$_model_key]);
+	                $join_col2 = $model->tableName() . '.' . $_model_key;
+	                $dbbuilder->on ( $join_col1, '=', $join_col2 );
+	            }
+	            // $foreign_key [当前表字段=>中间表字段]
+	            $rc=$col=[];
+	            foreach ($foreign_key as $entity_key=>$_foreign_key) {
+	                $col[$entity_key] = $this->db()->expr($column_table . '.' . $_foreign_key);
+	            }
+	            $this->_builderPkWheres($dbbuilder, $col, $vals);
+	            
+	            $column=[];
+	            foreach ($foreign_key as $entity_key=>$_foreign_key) {
+	                $_rc=$column_table_ . '_' . $_foreign_key;
+	                $ac=$column_table . '.' . $_foreign_key." as ".$_rc;
+	                foreach ($col as $v){
+	                    $column[]=new Column($_rc,$ac);
+	                }
+	                $rc[$entity_key]=$_rc;
+	            }
+	            $column[]=new Column('total','count(*) as total');
+	            $dbbuilder->columnSet(new ColumnSet($column));
+	        }else{
+	            //$foreign_key [本身主键名=>对方存本身主键名]
+	            $rc=$col=$foreign_key;
+	            $column=[];
+	            foreach ($col as $v){
+	                $column[]=new Column($v);
+	            }
+	            $column[]=new Column('total','count(*) as total');
+	            $dbbuilder->columnSet(new ColumnSet($column));
+	            $this->_builderPkWheres($dbbuilder, $col, $vals);
+	        }
+	        $related->runBuilderCallback($column,$dbbuilder);
+	        foreach ($col as $_col) {
+	            $dbbuilder->groupBy($_col);
+	        }
+	        foreach ($dbbuilder->findAll() as $entity) {
+	            $val=[];
+	            foreach ($rc as $entity_key=>$_foreign_key){
+	                $val[$entity_key]=strval($entity->__get($_foreign_key));
+	            }
+	            $out[serialize($val)]=intval($entity->__get('total'));
+	        }
+	        foreach ($entity_set as $entity) {
+	            $key=$entity->pk();
+	            $key=array_map('strval', $key);
+	            $key=serialize($key);
+	            if (isset($out[$key]))continue;
+	            $out[$key]=0;
+	        }
+	    }
+	    return $out;
+	}
+	/**
+	 * 获取一对多实现
+	 * @param Model $model
+	 * @param array|\LSYS\Model\EntitySet $entity_set
+	 * @param string $column
+	 * @return \LSYS\Model\EntitySet[]
+	 */
+	private function _hasMany(Model $model,$entity_set,string $column) {
+	    $related=$this->related();
+	    //一[本身]对多[对方]关系
+	    $out=[];
+	    $foreign_key=$related->getHasManyForeignKey($column);
+	    if (!is_array($foreign_key)) {
+	        $vals=[];
+	        foreach ($entity_set as $entity) {
+	            $vals[]=strval($entity->pk());
+	        }
+	        if (!empty($vals)) {
+    	        $dbbuilder=$model->dbBuilder();
+    	        if ($related->isHasManyThrough($column)) {
+    	            // 中间表
+    	            $through=$related->getHasManyThrough($column);
+    	            if(is_array($through)&&isset($through[1])){
+    	                $column_table_=$through[1];
+    	                $column_table=$this->db()->quoteTable($column_table_);
+    	            }else{
+    	                $column_table_=$through;
+    	                $column_table=$this->db()->quoteTable($column_table_);
+    	            }
+    	            //$foreign_key 中间表本身主键字段
+    	            //$far_key 中间表存对方主键字段
+    	            $far_key=strval($related->getHasManyFarKey($column));//中间表存本身字段名
+    	            // 中间表分别存放两个表的两个主键
+    	            $join_col1 = $this->db()->expr($column_table . '.' . $this->db()->quoteColumn($far_key));
+    	            $join_col2 = $model->tableName() . '.' . $model->primaryKey();
+    	            $dbbuilder->join ($through);
+    	            $dbbuilder->on ( $join_col1, '=', $join_col2 );//中间表连对方模型
+    	            // 连接中间表,中间表存储当前主键的字段 = 当前主键
+    	            $col = $this->db()->expr($column_table . '.' . $foreign_key);
+    	            $dbbuilder->where($col, "in", $vals);
+    	            $related->runBuilderCallback($column,$dbbuilder);
+    	            $rc=$column_table_ . '_' . $foreign_key;
+    	            $ac=$column_table . '.' . $foreign_key." as ".$rc;
+    	            $cset=new EntityColumnSet($model->tableColumns()->asArray(ColumnSet::TYPE_FIELD),[new \LSYS\Model\Column($rc,$ac)]);
+    	            $dbbuilder->columnSet($cset);
+    	        }else{
+    	            //$foreign_key 对方存本身主键字段
+    	            $col = strval($foreign_key);
+    	            $rc = $col;
+    	            $dbbuilder->where($col, "in", $vals);
+    	            $related->runBuilderCallback($column,$dbbuilder);
+    	        }
+    	        $tmp=[];
+    	        foreach ($dbbuilder->findAll() as $entity) {
+    	            $tmp[$entity->__get($rc)][]=$entity->exportData();
+    	        }
+    	        foreach ($tmp as $key=>$value) {
+    	            $out[$key]=$this->_builderEntitySet($dbbuilder, $value);
+    	        }
+    	        foreach ($entity_set as $entity) {
+    	            $pk=$entity->pk();
+    	            if (isset($out[$pk]))continue;
+    	            $out[$pk]=$this->_builderEntitySet($dbbuilder, []);
+    	        }
+	        }
+	    }else{
+	        $vals=[];
+	        foreach ($entity_set as $entity) {
+	            $vals[]=(array)$entity->pk();
+	        }
+	        if (!empty($vals)) {
+    	        $dbbuilder=$model->dbBuilder();
+    	        if ($related->isHasManyThrough($column)) {
+    	            // 中间表
+    	            $through=$related->getHasManyThrough($column);
+    	            if(is_array($through)&&isset($through[1])){
+    	                $column_table_=$through[1];
+    	                $column_table=$this->db()->quoteTable($column_table_);
+    	            }else{
+    	                $column_table_=$through;
+    	                $column_table=$this->db()->quoteTable($column_table_);
+    	            }
+    	            //$foreign_key 中间表本身主键字段
+    	            //$far_key 中间表存对方主键字段
+    	            $far_key=$related->getHasManyFarKey($column);//[对方表字段=>中间表字段]
+    	            $model_key=$model->primaryKey();
+    	            if (!is_array($model_key)) $far_key=[$model_key=>strval($far_key)];
+    	            $dbbuilder->join ($through);
+    	            foreach ($model_key as $_model_key){
+    	                $join_col1 = $this->db()->expr($column_table . '.' . $far_key[$_model_key]);
+    	                $join_col2 = $model->tableName() . '.' . $_model_key;
+    	                $dbbuilder->on ( $join_col1, '=', $join_col2 );
+    	            }
+    	            // $foreign_key [当前表字段=>中间表字段]
+    	            $rc=$col=[];
+    	            foreach ($foreign_key as $entity_key=>$_foreign_key) {
+    	                $col[$entity_key] = $this->db()->expr($column_table . '.' . $_foreign_key);
+    	            }
+    	            $this->_builderPkWheres($dbbuilder, $col, $vals);
+    	            $related->runBuilderCallback($column,$dbbuilder);
+    	            $patch=[];
+    	            foreach ($foreign_key as $entity_key=>$_foreign_key) {
+    	                $_rc=$column_table_ . '_' . $_foreign_key;
+    	                $ac=$column_table . '.' . $_foreign_key." as ".$_rc;
+    	                $patch[]=new \LSYS\Model\Column($_rc,$ac);
+    	                $rc[$entity_key]=$_rc;
+    	            }
+    	            $dbbuilder->columnSet(new EntityColumnSet($dbbuilder->table()->tableColumns()->asArray(ColumnSet::TYPE_FIELD),$patch));
+    	        }else{
+    	            //$foreign_key [本身主键名=>对方存本身主键名]
+    	            $rc=$col=$foreign_key;
+    	            $this->_builderPkWheres($dbbuilder, $col, $vals);
+    	            $related->runBuilderCallback($column,$dbbuilder);
+    	        }
+    	        
+    	        $tmp=[];
+    	        foreach ($dbbuilder->findAll() as $entity) {
+    	            $val=[];
+    	            foreach ($rc as $entity_key=>$_foreign_key){
+    	                $val[$entity_key]=strval($entity->__get($_foreign_key));
+    	            }
+    	            $tmp[serialize($val)][]=$entity->exportData();
+    	        }
+    	        foreach ($tmp as $key=>$value) {
+    	            $out[$key]=$this->_builderEntitySet($dbbuilder, $value);
+    	        }
+    	        foreach ($entity_set as $entity) {
+    	            $key=$entity->pk();
+    	            $key=array_map('strval', $key);
+    	            $key=serialize($key);
+    	            if (isset($out[$key]))continue;
+    	            $out[$key]=$this->_builderEntitySet($dbbuilder, []);
+    	        }
+	        }
+	    }
+	    return $out;
+	}
+	/**
+	 * 获取一对一实现
+	 * @param Model $model
+	 * @param array|\LSYS\Model\EntitySet $entity_set
+	 * @param string $column
+	 * @return \LSYS\Model\Entity[]
+	 */
+	private function _hasOne(Model $model,$entity_set,string $column) {
+	    $related=$this->related();
+	    //对方存本身主键
+	    $out=[];
+	    $col = $related->getHasOneForeignKey($column);//对方键名
+	    if (!is_array($col)) {
+	        $vals=[];
+	        foreach ($entity_set as $entity) {
+	            $vals[]=$entity->pk();
+	        }
+	        if (!empty($vals)){
+    	        $vals=array_unique($vals);
+    	        $dbbuilder=$model->dbBuilder();
+    	        $dbbuilder->where($col, "in", $vals);
+    	        $related->runBuilderCallback($column,$dbbuilder);
+    	        foreach ($dbbuilder->findAll() as $entity){
+    	            $out[$entity->__get($col)]=$entity;
+    	        }
+    	        foreach ($vals as $val){
+    	            if (isset($out[$val]))continue;
+    	            $out[$val]=$this->_createEntity($model);;
+    	        }
+	        }
+	    }else{
+	        $vals=[];
+	        foreach ($entity_set as $entity) {
+	            $tmp=(array)$entity->pk();
+	            $tmp=array_map('strval', $tmp);
+	            $vals[]=$tmp;
+	        }
+	        if (!empty($vals)){
+    	        $dbbuilder=$model->dbBuilder();
+    	        //$col ['本身字段'=>'对方字段']
+    	        $this->_builderPkWheres($dbbuilder,$col, $vals);
+    	        $related->runBuilderCallback($column,$dbbuilder);
+    	        foreach ($dbbuilder->findAll() as $entity){
+    	            $val=[];
+    	            foreach ($col as $tk=>$value) {
+    	                $val[$tk]=strval($entity->__get($value));
+    	            }
+    	            $out[serialize($val)]=$entity;
+    	        }
+    	        foreach ($vals as $val){
+    	            $key=serialize($val);
+    	            if (isset($out[$key]))continue;
+    	            $out[$key]=$this->_createEntity($model);;
+    	        }
+	        }
+	    }
+	    return $out;
+	}
+	/**
+	 * 获取多对一实现
+	 * @param Model $model
+	 * @param array|\LSYS\Model\EntitySet $entity_set
+	 * @param string $column
+	 * @return \LSYS\Model\Entity[]
+	 */
+	private function _belongsTo(Model $model,$entity_set,string $column) {
+	    $related=$this->related();
+	    //本身存对方主键
+	    $out=[];
+	    $foreign_key=$related->getBelongsToForeignKey($column);
+	    $keys=$model->primaryKey();
+	    if (!is_array($keys)) {
+	        $vals=[];
+	        foreach ($entity_set as $entity) {
+	            $val=$entity->__get(strval($foreign_key));//得到对方主键
+	            if ($related->isFilter($column,$val)) {
+	                $out[$val]=$this->_createEntity($model);
+	                continue;
+	            }
+	            $vals[]=$val;
+	        }
+	        if (!empty($vals)){
+    	        $vals=array_unique($vals);
+    	        $dbbuilder=$model->dbBuilder();
+    	        $dbbuilder->where($keys, "in", $vals);
+    	        $related->runBuilderCallback($column,$dbbuilder);
+    	        foreach ($dbbuilder->findAll() as $entity){
+    	            $out[$entity->__get($keys)]=$entity;
+    	        }
+    	        foreach ($vals as $val){
+    	            if (isset($out[$val]))continue;
+    	            $out[$val]=$this->_createEntity($model);;
+    	        }
+	        }
+	    }else{
+	        $vals=[];
+	        foreach ($entity_set as $entity) {
+	            $val=[];
+	            //$foreign_key=['对方键名'=>'本身键名'];
+	            foreach ((array)$foreign_key as $_foreign_key=>$_foreign_val){
+	                $val[$_foreign_key]=strval($entity->__get(strval($_foreign_val)));//得到对方主键
+	            }
+	            if ($related->isFilter($column,$val)) {
+	                $out[serialize($val)]=$this->_createEntity($model);
+	                continue;
+	            }
+	            $vals[]=$val;
+	        }
+	        if (!empty($vals)){
+    	        $dbbuilder=$model->dbBuilder();
+    	        $this->_builderPkWheres($dbbuilder, array_combine($keys, $keys), $vals);
+    	        $related->runBuilderCallback($column,$dbbuilder);
+    	        foreach ($dbbuilder->findAll() as $entity){
+    	            $val=[];
+    	            foreach ($foreign_key as $tk=>$sval) {
+    	                $val[$sval]=strval($entity->__get($tk));
+    	            }
+    	            $out[serialize($val)]=$entity;
+    	        }
+    	        foreach ($vals as $val){
+    	            if (isset($out[serialize($val)]))continue;
+    	            $out[serialize($val)]=$this->_createEntity($model);;
+    	        }
+	        }
+	    }
+	    return $out;
+	}
+	/**
+	 * 构造结果集对象
+	 * @param Builder $dbbuilder
+	 * @param array $cols
+	 * @param array $vals
+	 */
+	private function _builderEntitySet(Builder $dbbuilder,array $val) {
+	    return new EntitySet(
+	        new \LSYS\Model\Database\ArrayResult($val),
+	        $dbbuilder->table()->entityClass(),
+	        $dbbuilder->columnGet(),
+	        $dbbuilder->table()
+        );
+	}
+	private function _builderPkWheres(Builder $dbbuilder,array $cols,array $vals) {
+	    $dbbuilder->whereOpen();
+	    foreach ($vals as $value) {
+	        $dbbuilder->orWhereOpen();
+	        foreach ($cols as $key=>$col) {
+	            $dbbuilder->where($col, "=", $value[$key]);
+	        }
+	        $dbbuilder->orWhereClose();
+	    }
+	    $dbbuilder->whereClose();
+	}
+	/**
+	 * 根据字段名得到模型对象
+	 * @param string $column
+	 * @return Model|null
+	 */
+	private function _relatedModel($column) {
+	    $related=$this->related();
+	    $model_name=$related->modelName($column);
+	    if (empty($model_name))return null;
+	    return (new \ReflectionClass($model_name))->newInstance();
+	}
+	/**
+	 * @param string $entity_name
+	 * @return Entity
+	 */
+	private function _createEntity(Model $model){
+	    return (new \ReflectionClass($model->entityClass()))->newInstance($model);
 	}
 }

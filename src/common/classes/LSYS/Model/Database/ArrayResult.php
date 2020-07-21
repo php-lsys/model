@@ -1,5 +1,5 @@
 <?php
-namespace LSYS\Model\Database\Database;
+namespace LSYS\Model\Database;
 class ArrayResult extends \ArrayIterator implements \LSYS\Entity\Database\Result {
     public function setFetchFree(){
         return $this;

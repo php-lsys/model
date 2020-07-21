@@ -20,7 +20,8 @@ class ColumnSet{
         return $this->_column_set;
     }
     /**
-     * 返回表主键列表
+     * 返回表主键名
+     * 联合主键返回数组
      * @return string|array
      */
     public function primaryKey() {
