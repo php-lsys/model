@@ -155,7 +155,11 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
             case 'not in' :
             case 'exists' :
             case 'not exists' :
-                return $db->quoteColumn ( $field ) . ' ' . $op . " (" . $db->quoteValue ( $value,$columntype ) . ") ";
+                $val=$db->quoteValue ( $value,$columntype );
+                if (!is_array($value)) {
+                    $val="(".$val.")";
+                }
+                return $db->quoteColumn ( $field ) . ' ' . $op . " " .$val. " ";
                 break;
             default :
                 if(empty($op)&&empty($value)) return $db->quoteColumn ( $field );

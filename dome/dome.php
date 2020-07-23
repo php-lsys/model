@@ -2,8 +2,8 @@
 use Model\ModelUser;
 use Model\EntityUser;
 use LSYS\Model\Database\Builder;
-use LSYS\Profiler\Utils;
-use function GuzzleHttp\json_decode;
+use LSYS\Entity\ColumnSet;
+use LSYS\Entity\Column;
 include_once __DIR__."/boot.php";
 //!!!!注意: 使用 model前必须配置数据库连接 配置方法 参阅 boot.php 文件
 // CREATE TABLE `user` (
@@ -14,14 +14,12 @@ include_once __DIR__."/boot.php";
 //     PRIMARY KEY (`id`)
 //     ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 
-
-
-//开箱即用方式
+// //开箱即用方式
 $tm=new \LSYS\Model\Table("user");
-//强制在从库查询一次
-//$tm->db()->queryMode(\LSYS\Model\Database::QUERY_SLAVE_ONCE);
-//强制查询都在从库查询
-//$tm->db()->queryMode(\LSYS\Model\Database::QUERY_SLAVE_ALL);
+// //强制在从库查询一次
+// //$tm->db()->queryMode(\LSYS\Model\Database::QUERY_SLAVE_ONCE);
+// //强制查询都在从库查询
+// //$tm->db()->queryMode(\LSYS\Model\Database::QUERY_SLAVE_ALL);
 var_dump($tm->dbBuilder()->where("id", "=", 10)->find()->asArray());
 
 
@@ -35,36 +33,42 @@ var_dump($tm->dbBuilder()->where("id", "=", 10)->find()->asArray());
 //model 创建好后,以下为使用方法:
 
 $e=new EntityUser();
-
 //单记录操作
 $e->name="fasdf".rand(0,10000);
 $e->save();
+
 print_r($e->asArray());
 $orm=new ModelUser();
 
-$entity=$orm->dbBuilder()->wherePk(1)->find();
+$entity=$orm->dbBuilder()->find();
 print_r($entity->orm1->asArray());
 print_r($entity->orm2->asArray());
 print_r($entity->orm3->asArray());
-
-$entity->table()->related()->setBuilderCallback('orm4', function (Builder $builder) {
+$entity->table()->related()->setBuilderCallback('orm4',function (Builder $builder) {
     $builder->offset(0)->limit(10);
-    $builder->columnSet(['id']);
 });
-$t=$entity->orm4;
-$res=$t->setPreload('orm1','orm2');
+$res=$entity->orm4;
 
 foreach ($res as $entity) {
-    $entity->orm1;
+    var_dump($entity->orm4->asArray());
     //设置字段 肯定在entity上.
     //数据在 model 上
 }
 
+$res=$orm->dbBuilder()->limit(10)->findAll();
+$orm->related()->setBuilderCallback('orm4',function (Builder $builder) {
+    $builder->offset(0)->limit(10);
+});
+$res->setPreload('orm4');
+
+foreach ($res as $entity) {
+    $val=$entity->orm4;
+    var_dump($val->asArray());
+}
 
 
-
-print_r($t->asarray());
-print_r($t->fetchCount());
+print_r($res->asarray());
+print_r($res->fetchCount());
 print_r($entity->asArray());
 $orm->db()->foundRows();
 print_r($orm->dbBuilder()->reset()->where("id", ">", 30)->findAll()->asArray());

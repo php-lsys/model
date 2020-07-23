@@ -197,11 +197,15 @@ class Related{
     /**
      * 设置查询构造器回调
      * @param string $column
-     * @param callable $callback
+     * @param callable $callback(Builder $builder,callable $parent)
      * @return $this
      */
     public function setBuilderCallback(string $column,callable $callback=null){
-        $this->_callback[$column]=$callback;
+        if (!is_callable($callback)){
+            $this->_callback[$column]=[];
+            return $this;
+        }
+        $this->_callback[$column][]=$callback;
         return $this;
     }
     /**
@@ -211,10 +215,17 @@ class Related{
      * @return $this
      */
     public function runBuilderCallback(string $column,Builder $builder) {
-        if (!isset($this->_callback[$column])||!is_callable($this->_callback[$column])){
+        if (!isset($this->_callback[$column])||!is_array($this->_callback[$column])){
             return $this;
         }
-        call_user_func($this->_callback[$column],$builder);
+        $pipe=array_reduce(array_reverse($this->_callback[$column]),function($carry,$callback){
+            return function ($passable) use ($carry,$callback) {
+                if (is_callable($callback)) {
+                    return $callback($passable, $carry);
+                }
+            };
+        },function(Builder $builder){});
+        $pipe($builder);
         return $this;
     }
     /**

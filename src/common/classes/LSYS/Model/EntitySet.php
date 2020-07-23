@@ -1,7 +1,6 @@
 <?php
 namespace LSYS\Model;
 use function LSYS\Model\__;
-use LSYS\Entity;
 /**
  * @property \LSYS\Model $_table 
  */
@@ -53,7 +52,13 @@ class EntitySet extends \LSYS\Entity\EntitySet{
         $related=$this->_table->related();
         if(!is_array($this->pre_count_data[$column])){
             if (!$related->isHasMany($column))return null;
+            $keep_key=$this->key();
             $out=$this->_table->hasManys($this, $column);
+            $this->rewind();
+            while (true) {
+                if(!$this->valid()||$this->key()==$keep_key)break;
+                $this->next();
+            }
             $this->pre_count_data[$column]=is_array($out)?$out:[];
         }
         return $this->dataPkFind($entity,$this->pre_count_data[$column]??[]);
@@ -72,7 +77,8 @@ class EntitySet extends \LSYS\Entity\EntitySet{
             $this->_table=(new \ReflectionClass($this->_entity))->newInstance()->table();
         }
         $related=$this->_table->related();
-        if(!is_array($this->pre_data[$column])){
+        if(!isset($this->pre_data[$column])){
+            $keep_key=$this->key();
             if ($related->isBelongsTo($column)){
                 $out=$this->_table->belongsTos($this, $column);
             }
@@ -83,6 +89,11 @@ class EntitySet extends \LSYS\Entity\EntitySet{
                 $out=$this->_table->hasManys($this, $column);
             }
             if (!isset($out))return null;
+            $this->rewind();
+            while (true) {
+                if(!$this->valid()||$this->key()==$keep_key)break;
+                $this->next();
+            }
             $this->pre_data[$column]=is_array($out)?$out:[];
         }
         return $this->dataPkFind($entity, $this->pre_data[$column]??[]);
@@ -101,5 +112,21 @@ class EntitySet extends \LSYS\Entity\EntitySet{
             $pk=serialize($pk);
         }
         return $data[$pk]??null;
+    }
+    public function current()
+    {
+        $row=$this->_result->current();
+        if (is_null($row))return null;
+        /**
+         * @var Entity $entity
+         */
+        $entity=(new \ReflectionClass($this->_entity))->newInstance($this->_table);
+        if (is_null($this->_table)) {
+            $this->_table=$entity->table();
+        }
+        if ($entity instanceof Entity) {
+            return $entity->loadData($row,$this->_columns,true,$this);
+        }
+        return $entity->loadData($row,$this->_columns,true);
     }
 }
