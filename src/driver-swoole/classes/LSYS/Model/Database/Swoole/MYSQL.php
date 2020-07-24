@@ -3,10 +3,11 @@ namespace LSYS\Model\Database\Swoole;
 use LSYS\Model\Exception;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
-use LSYS\Model\Database\Expr;
 use LSYS\DI\ShareCache;
 use LSYS\Entity\Table;
+use LSYS\Model\Database\Swoole\EventManager\DBEvent;
 class MYSQL implements \LSYS\Model\Database {
+    use MYSQLTrait;
     protected $_mysql;
     protected $_master_mysql;
     protected $_mysql_connect=0;
@@ -86,7 +87,7 @@ class MYSQL implements \LSYS\Model\Database {
             $sql=substr_replace($sql,' SQL_CALC_FOUND_ROWS',6,0);
             $this->_use_found_rows=2;
         }
-        $res=$this->_query($sql,$data);
+        $res=$this->_query($sql,$data,false);
         return new Result($res);
     }
     public function queryCount(string $sql,array $data=[],string $total_column='total'):int
@@ -95,7 +96,7 @@ class MYSQL implements \LSYS\Model\Database {
             $sql="select FOUND_ROWS() as ".addslashes($total_column);
             $this->_use_found_rows=0;
         }
-        $row=$this->_query($sql,$data);
+        $row=$this->_query($sql,$data,false);
         $row=$row->fetch();
         return intval($row[$total_column]??0);
     }
@@ -148,7 +149,7 @@ class MYSQL implements \LSYS\Model\Database {
      * @param array $data
      * @throws \LSYS\Entity\Exception
      */
-    protected function _query(string $sql,$data){
+    protected function _query(string $sql,$data,$exec){
         $this->_last_query=$sql;
         while (true) {
             if($this->mode==\LSYS\Model\Database::QUERY_MUST_MASTER){
@@ -161,13 +162,16 @@ class MYSQL implements \LSYS\Model\Database {
             }else{
                 $mysql=$this->_master_mysql;
             }
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlStart($sql,$exec));
             $result=$mysql->prepare($sql);
             if($result&&$result->execute($data)){
                 if($this->mode==\LSYS\Model\Database::QUERY_SLAVE_ONCE){
                     $this->mode=\LSYS\Model\Database::QUERY_MUST_MASTER;
                 }
+                $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlOk($sql,$exec));
                 break;
             }
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlBad($sql,$exec));
             if($this->_master_mysql==$mysql&&$this->inTransaction()){
                 $e=new Exception($mysql->error,$mysql->errno);
                 $e->setErrorSql($sql);
@@ -193,6 +197,7 @@ class MYSQL implements \LSYS\Model\Database {
                 throw $e;
             }
         }
+        $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,$exec));
         return $result;
     }
     /**
@@ -205,13 +210,20 @@ class MYSQL implements \LSYS\Model\Database {
         $this->_last_query=$sql;
         $mysql=$this->_master_mysql;
         if($this->inTransaction()){
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlStart($sql,true));
             $result=$mysql->prepare($sql);
-            if($result&&$result->execute($data))goto succ;
+            if($result&&$result->execute($data)){
+                $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlBad($sql,true));
+                $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,true));
+                goto succ;
+            }
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlBad($sql,true));
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,true));
             $e=new Exception($mysql->error,$mysql->errno);
             $e->setErrorSql($sql);
             throw $e;
         }else{
-            $this->_query($sql, $data);
+            $this->_query($sql, $data,true);
             goto succ;
         }
         succ:
@@ -226,7 +238,7 @@ class MYSQL implements \LSYS\Model\Database {
     public function listColumns(string $table)
     {
         $sql='SHOW FULL COLUMNS FROM '.$table;
-        $result=$this->_query($sql,[]);
+        $result=$this->_query($sql,[],false);
         $columns=[];
         $pk=[];
         foreach ($result->fetchall() as $row){
@@ -246,131 +258,10 @@ class MYSQL implements \LSYS\Model\Database {
     {
         return $this->_insert_id;
     }
-    public function quoteColumn($column)
-    {
-        if(empty($column)) return '';
-        $this->_initCreateMysql();
-        // Identifiers are escaped by repeating them
-        $escaped_identifier = $this->_identifier . $this->_identifier;
-        
-        if (is_array ( $column )) {
-            list ( $column, $alias ) = $column;
-            $alias = str_replace ( $this->_identifier, $escaped_identifier, $alias );
-        }
-        if ($column instanceof Expr) {
-            // Compile the expression
-            $column = $column->compile($this);
-        } else {
-            // Convert to a string
-            $column = ( string ) $column;
-            
-            $column = str_replace ( $this->_identifier, $escaped_identifier, $column );
-            if ($column === '*') {
-                return $column;
-            } elseif (strpos ( $column, '.' ) !== FALSE) {
-                $parts = explode ( '.', $column );
-                
-                if ($prefix = $this->_table_prefix) {
-                    // Get the offset of the table name, 2nd-to-last part
-                    $offset = count ( $parts ) - 2;
-                    
-                    // Add the table prefix to the table name
-                    $parts [$offset] = $prefix . $parts [$offset];
-                }
-                
-                foreach ( $parts as & $part ) {
-                    if ($part !== '*') {
-                        // Quote each of the parts
-                        $part = $this->_identifier . $part . $this->_identifier;
-                    }
-                }
-                
-                $column = implode ( '.', $parts );
-            } else {
-                $column = $this->_identifier . $column . $this->_identifier;
-            }
-        }
-        if (isset ( $alias )) {
-            $column .= ' AS ' . $this->_identifier . $alias . $this->_identifier;
-        }
-        return $column;
-    }
-    public function quoteTable($table)
-    {
-        $this->_initCreateMysql();
-        // Identifiers are escaped by repeating them
-        $escaped_identifier = $this->_identifier . $this->_identifier;
-        
-        if (is_array ( $table )) {
-            list ( $table, $alias ) = $table;
-            $alias = str_replace ( $this->_identifier, $escaped_identifier, $alias );
-        }
-        
-        if ($table instanceof Expr) {
-            // Compile the expression
-            $table = $table->compile ($this);
-        } else {
-            // Convert to a string
-            $table = ( string ) $table;
-            
-            $table = str_replace ( $this->_identifier, $escaped_identifier, $table );
-            
-            if (strpos ( $table, '.' ) !== FALSE) {
-                $parts = explode ( '.', $table );
-                
-                if ($prefix = $this->_table_prefix) {
-                    // Get the offset of the table name, last part
-                    $offset = count ( $parts ) - 1;
-                    
-                    // Add the table prefix to the table name
-                    $parts [$offset] = $prefix . $parts [$offset];
-                }
-                
-                foreach ( $parts as & $part ) {
-                    // Quote each of the parts
-                    $part = $this->_identifier . $part . $this->_identifier;
-                }
-                
-                $table = implode ( '.', $parts );
-            } else {
-                // Add the table prefix
-                $table = $this->_identifier . $this->_table_prefix . $table . $this->_identifier;
-            }
-        }
-        
-        if (isset ( $alias )) {
-            // Attach table prefix to alias
-            $table .= ' AS ' . $this->_identifier.$this->_table_prefix. $alias . $this->_identifier;
-        }
-        return $table;
-    }
     public function quoteValue($value, $column_type=null)
     {
-        if ($value === NULL) {
-            return 'NULL';
-        } elseif ($value === TRUE) {
-            return "'1'";
-        } elseif ($value === FALSE) {
-            return "'0'";
-        } elseif (is_object ( $value )) {
-            if ($value instanceof Expr) {
-                // Compile the expression
-                return $value->compile($this);
-            } else {
-                // Convert the object to a string
-                return $this->quoteValue ( ( string ) $value,$column_type );
-            }
-        } elseif (is_array ( $value )) {
-            return '(' . implode ( ', ', array_map ( array (
-                $this,
-                __FUNCTION__
-            ), $value ) ) . ')';
-        } elseif (is_int ( $value )) {
-            return ( int ) $value;
-        } elseif (is_float ( $value )) {
-            // Convert to non-locale aware float to prevent possible commas
-            return sprintf ( '%F', $value );
-        }
+        list($status,$value)=$this->quoteString($value);
+        if ($status)return $value;
         try{
             if(!$this->_mysql&&!$this->_master_mysql){
                 $this->connect($this->_initCreateMysql());
@@ -399,6 +290,11 @@ class MYSQL implements \LSYS\Model\Database {
         if(!$this->_master_mysql)$this->connect($this->createMysql(true));
         $status=$this->_master_mysql->begin();
         $this->_in_transaction=true;
+        if ($status) {
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::transactionBegin());
+        }else{
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::transactionFail());
+        }
         return $status;
     }
     public function inTransaction():bool{
@@ -411,6 +307,7 @@ class MYSQL implements \LSYS\Model\Database {
         if(!$this->_master_mysql)$this->connect($this->createMysql(true));
         $status=$this->_master_mysql->rollback();
         $this->_in_transaction=false;
+        $this->event_manager&&$this->event_manager->dispatch(DBEvent::transactionRollback());
         return $status;
     }
     /**
@@ -421,6 +318,7 @@ class MYSQL implements \LSYS\Model\Database {
         if(!$this->_master_mysql)$this->connect($this->createMysql(true));
         $status=$this->_master_mysql->commit();
         $this->_in_transaction=false;
+        $this->event_manager&&$this->event_manager->dispatch(DBEvent::transactionCommit());
         return $status;
     }
     public function __destruct() {

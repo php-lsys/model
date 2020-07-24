@@ -535,12 +535,17 @@ abstract class Model implements Table{
     	        $dbbuilder=$model->dbBuilder();
     	        $dbbuilder->where($keys, "in", $vals);
     	        $related->runBuilderCallback($column,$dbbuilder);
+    	        $tmp=[];
     	        foreach ($dbbuilder->findAll() as $entity){
-    	            $out[$entity->__get($keys)]=$entity;
+    	            $tmp[$entity->pk()]=$entity;
     	        }
-    	        foreach ($vals as $val){
-    	            if (isset($out[$val]))continue;
-    	            $out[$val]=$this->_createEntity($model);;
+    	        foreach ($entity_set as $entity) {
+    	            $rpk=$entity->pk();
+    	            if (is_array($rpk)) {
+    	                $rpk=array_map('strval', $rpk);
+    	                $rpk=serialize($rpk);
+    	            }
+    	            $out[$rpk]=$tmp[$entity->__get(strval($foreign_key))]??$this->_createEntity($model);
     	        }
 	        }
 	    }else{
@@ -561,16 +566,25 @@ abstract class Model implements Table{
     	        $dbbuilder=$model->dbBuilder();
     	        $this->_builderPkWheres($dbbuilder, array_combine($keys, $keys), $vals);
     	        $related->runBuilderCallback($column,$dbbuilder);
+    	        
+    	        $tmp=[];
     	        foreach ($dbbuilder->findAll() as $entity){
-    	            $val=[];
     	            foreach ($foreign_key as $tk=>$sval) {
     	                $val[$sval]=strval($entity->__get($tk));
     	            }
-    	            $out[serialize($val)]=$entity;
+    	            $tmp[serialize($val)]=$entity;
     	        }
-    	        foreach ($vals as $val){
-    	            if (isset($out[serialize($val)]))continue;
-    	            $out[serialize($val)]=$this->_createEntity($model);;
+    	        foreach ($entity_set as $entity) {
+    	            $val=[];
+    	            foreach ($foreign_key as $sval) {
+    	                $val[$sval]=strval($entity->__get($sval));
+    	            }
+    	            $rpk=$entity->pk();
+    	            if (is_array($rpk)) {
+    	                $rpk=array_map('strval', $rpk);
+    	                $rpk=serialize($rpk);
+    	            }
+    	            $out[$rpk]=$tmp[serialize($val)]??$this->_createEntity($model);
     	        }
 	        }
 	    }

@@ -2,17 +2,10 @@
 use Model\ModelUser;
 use Model\EntityUser;
 use LSYS\Model\Database\Builder;
-use LSYS\Entity\ColumnSet;
-use LSYS\Entity\Column;
 include_once __DIR__."/boot.php";
+
 //!!!!注意: 使用 model前必须配置数据库连接 配置方法 参阅 boot.php 文件
-// CREATE TABLE `user` (
-//     `id` int(11) NOT NULL AUTO_INCREMENT,
-//     `name` varchar(100) DEFAULT NULL,
-//     `add_time` int(11) DEFAULT NULL,
-//     `code` varchar(100) DEFAULT NULL,
-//     PRIMARY KEY (`id`)
-//     ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
 
 // //开箱即用方式
 $tm=new \LSYS\Model\Table("user");
@@ -41,37 +34,44 @@ print_r($e->asArray());
 $orm=new ModelUser();
 
 $entity=$orm->dbBuilder()->find();
-print_r($entity->orm1->asArray());
-print_r($entity->orm2->asArray());
-print_r($entity->orm3->asArray());
-$entity->table()->related()->setBuilderCallback('orm4',function (Builder $builder) {
-    $builder->offset(0)->limit(10);
+print_r($entity->self_mail->asArray());
+print_r($entity->mail_one->asArray());
+
+$entity->table()->related()->setBuilderCallback('mail_all',function (Builder $builder,callable $parent) {
+    $builder->offset(0)->limit(2);
+    $parent($builder);
 });
-$res=$entity->orm4;
+$entity->table()->related()->setBuilderCallback('mail_alls',function (Builder $builder,callable  $parent) {
+    $builder->offset(0)->limit(2);
+    $parent($builder);
+});
+print_r($entity->mail_all->asArray());
+print_r($entity->mail_alls->asArray());
+
+
+$entity->table()->related()->setBuilderCallback('mail_all',function (Builder $builder,callable  $parent) {
+    $parent($builder);
+    $builder->limit(null);
+});
+$entity->table()->related()->setBuilderCallback('mail_alls',function (Builder $builder,callable  $parent) {
+    $parent($builder);
+    $builder->limit(null);
+});
+
+$res=$orm->dbBuilder()->limit(100)->findAll();
+$res->setPreload('mail_all','self_mail','mail_one','mail_alls');
 
 foreach ($res as $entity) {
-    var_dump($entity->orm4->asArray());
-    //设置字段 肯定在entity上.
-    //数据在 model 上
+   print_r($entity->self_mail->asArray());
+   print_r($entity->mail_one->asArray());
+    print_r($entity->mail_alls->asArray());
+    print_r($entity->mail_all->asArray());
 }
-
-$res=$orm->dbBuilder()->limit(10)->findAll();
-$orm->related()->setBuilderCallback('orm4',function (Builder $builder) {
-    $builder->offset(0)->limit(10);
-});
-$res->setPreload('orm4');
-
-foreach ($res as $entity) {
-    $val=$entity->orm4;
-    var_dump($val->asArray());
-}
-
-
 print_r($res->asarray());
 print_r($res->fetchCount());
 print_r($entity->asArray());
 $orm->db()->foundRows();
-print_r($orm->dbBuilder()->reset()->where("id", ">", 30)->findAll()->asArray());
+print_r($orm->dbBuilder()->reset()->where("id", ">", 30)->limit(3)->findAll()->asArray());
 print_r($orm->dbBuilder()->countAll());
 
 
@@ -117,3 +117,6 @@ $tm->dbBuilder()->update($b[0],$res)->exec();
 
 //批量删除
 $tm->dbBuilder()->delete($tm->db()->expr("name=:bb",[":bb"=>"ddd"]))->exec();
+
+
+echo PHP_EOL.\LSYS\Profiler\Utils::render();

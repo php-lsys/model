@@ -21,7 +21,8 @@ trait ModelUserTrait {
             (new \LSYS\Entity\Column('id'))->setType('int(11)')->setDefault(NULL),
 			(new \LSYS\Entity\Column('code'))->setType('char(12)')->setDefault(NULL),
 			(new \LSYS\Entity\Column('name'))->setType('varchar(32)')->setDefault(NULL),
-			(new \LSYS\Entity\Column('add_time'))->setType('int(11)')->setDefault(NULL)
+			(new \LSYS\Entity\Column('add_time'))->setType('int(11)')->setDefault(NULL),
+			(new \LSYS\Entity\Column('email_id'))->setType('int(11)')->setDefault(NULL)
         ]);
     }
     public function primaryKey() {

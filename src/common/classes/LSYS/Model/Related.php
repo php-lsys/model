@@ -166,7 +166,7 @@ class Related{
     public function getHasManyFarKey(string $column) {
         if (!isset($this->_has_many[$column]))return null;
         if (!isset($this->_has_many[$column]['far_key'])) {
-            $this->_has_many[$column]['far_key']=strtolower($this->_belongs_to[$column]['through'])."_id";
+            $this->_has_many[$column]['far_key']=strtolower($this->_has_many[$column]['through'])."_id";
         }
         return $this->_has_many[$column]['far_key'];
     }
@@ -178,7 +178,7 @@ class Related{
     public function getHasManyForeignKey(string $column) {
         if (!isset($this->_has_many[$column]))return null;
         if (!isset($this->_has_many[$column]['foreign_key'])) {
-            $this->_has_many[$column]['foreign_key']=strtolower($this->_belongs_to[$column]['model'])."_id";
+            $this->_has_many[$column]['foreign_key']=strtolower($this->_has_many[$column]['model'])."_id";
         }
         return $this->_has_many[$column]['foreign_key'];
     }

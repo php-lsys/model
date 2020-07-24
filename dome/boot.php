@@ -16,7 +16,13 @@ File::dirs(array(
         ->modelDB(new SingletonCallback(function(){
             //使用以下数据库连接 请先引入  lsys/db 库
             $db = Database::factory(LSYS\Config\DI::get()->config("database.mysqli"));
-            return new \LSYS\Model\Database\Database\MYSQL($db);//默认不传 $db 将从Database的DI中获取数据库对象
+            
+            $event=\LSYS\EventManager\DI::get()->eventManager();
+            $event->attach(new \LSYS\Database\EventManager\ProfilerObserver());
+            $db->setEventManager($event);
+            
+            $mysql=new \LSYS\Model\Database\Database\MYSQL($db);//默认不传 $db 将从Database的DI中获取数据库对象
+            return $mysql;
         }))
         ;
 });

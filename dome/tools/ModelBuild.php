@@ -19,7 +19,7 @@ class DomeModelBuild extends TraitBuild{
 //         foreach ($this->_db->query($sql) as $value) {
 //             $out[]=array_shift($value);
 //         }
-        return [$this->_db->tablePrefix()."user"];//$out;
+        return [$this->_db->tablePrefix()."user",$this->_db->tablePrefix()."email"];//$out;
     }
     public function tablePrefix():string{
         return $this->_db->tablePrefix();

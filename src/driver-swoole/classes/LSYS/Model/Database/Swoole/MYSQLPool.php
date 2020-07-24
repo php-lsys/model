@@ -3,9 +3,10 @@ namespace LSYS\Model\Database\Swoole;
 use LSYS\Model\Exception;
 use LSYS\Entity\Column;
 use LSYS\Entity\ColumnSet;
-use LSYS\Model\Database\Expr;
 use LSYS\Entity\Table;
+use LSYS\Model\Database\Swoole\EventManager\DBEvent;
 class MYSQLPool implements \LSYS\Model\Database {
+    use MYSQLTrait;
     protected $_pool;
     protected $_use_found_rows=0;
     protected $_query_config;
@@ -88,14 +89,21 @@ class MYSQLPool implements \LSYS\Model\Database {
         }
         $db=$this->_pool->pop($this->_query_config[$index]);
         try{
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlStart($sql,false));
             $row=$this->_pool->query($db, function()use($db,$sql,$data){
                 $pre=$db->mysql()->prepare($sql);
                 if($pre&&$pre->execute($data)){
+                    $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlOk($sql,false));
+                    $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,false));
                     return $pre;
                 }
+                $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlBad($sql,false));
+                $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,false));
                 return false;
             });
         }catch (\Exception $_e){
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlBad($sql,false));
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,false));
             $this->_pool->push($db);
             $e=new Exception($_e->getMessage(),$_e->getCode(),$_e);
             $e->setErrorSql($sql);
@@ -106,15 +114,20 @@ class MYSQLPool implements \LSYS\Model\Database {
     }
     public function exec($sql,array $data=[])
     {
+        $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlStart($sql,true));
         $this->_last_query=$sql;
         if ($this->inTransaction()) {
             $db=$this->_db;
             $res=$db->mysql()->prepare($sql);
             if(!$res||!$res->execute($data)){
+                $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlBad($sql,true));
+                $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,true));
                 $e=new Exception($db->mysql()->error,$db->mysql()->errno);
                 $e->setErrorSql($sql);
                 throw $e;
             }
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlOk($sql,true));
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,true));
             $this->_insert_id=$db->mysql()->insert_id;
             $this->_affected_rows=$db->mysql()->affected_rows;
         }else{
@@ -123,8 +136,12 @@ class MYSQLPool implements \LSYS\Model\Database {
                 $res=$this->_pool->query($db, function()use($db,$sql,$data){
                     $pre=$db->mysql()->prepare($sql);
                     if($pre&&$pre->execute($data)){
+                        $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlOk($sql,true));
+                        $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,true));
                         return $pre;
                     }
+                    $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlBad($sql,true));
+                    $this->event_manager&&$this->event_manager->dispatch(DBEvent::sqlEnd($sql,true));
                     return false;
                 });
             }catch (\Exception $_e){
@@ -162,130 +179,11 @@ class MYSQLPool implements \LSYS\Model\Database {
     {
         return $this->_insert_id;
     }
-    public function quoteColumn($column)
-    {
-        if(empty($column)) return '';
-        // Identifiers are escaped by repeating them
-        $escaped_identifier = $this->_identifier . $this->_identifier;
-        
-        if (is_array ( $column )) {
-            list ( $column, $alias ) = $column;
-            $alias = str_replace ( $this->_identifier, $escaped_identifier, $alias );
-        }
-        if ($column instanceof Expr) {
-            // Compile the expression
-            $column = $column->compile($this);
-        } else {
-            // Convert to a string
-            $column = ( string ) $column;
-            
-            $column = str_replace ( $this->_identifier, $escaped_identifier, $column );
-            if ($column === '*') {
-                return $column;
-            } elseif (strpos ( $column, '.' ) !== FALSE) {
-                $parts = explode ( '.', $column );
-                
-                if ($prefix = $this->_table_prefix) {
-                    // Get the offset of the table name, 2nd-to-last part
-                    $offset = count ( $parts ) - 2;
-                    
-                    // Add the table prefix to the table name
-                    $parts [$offset] = $prefix . $parts [$offset];
-                }
-                
-                foreach ( $parts as & $part ) {
-                    if ($part !== '*') {
-                        // Quote each of the parts
-                        $part = $this->_identifier . $part . $this->_identifier;
-                    }
-                }
-                
-                $column = implode ( '.', $parts );
-            } else {
-                $column = $this->_identifier . $column . $this->_identifier;
-            }
-        }
-        if (isset ( $alias )) {
-            $column .= ' AS ' . $this->_identifier . $alias . $this->_identifier;
-        }
-        return $column;
-    }
-    public function quoteTable($table)
-    {
-        // Identifiers are escaped by repeating them
-        $escaped_identifier = $this->_identifier . $this->_identifier;
-        
-        if (is_array ( $table )) {
-            list ( $table, $alias ) = $table;
-            $alias = str_replace ( $this->_identifier, $escaped_identifier, $alias );
-        }
-        
-        if ($table instanceof Expr) {
-            // Compile the expression
-            $table = $table->compile ($this);
-        } else {
-            // Convert to a string
-            $table = ( string ) $table;
-            
-            $table = str_replace ( $this->_identifier, $escaped_identifier, $table );
-            
-            if (strpos ( $table, '.' ) !== FALSE) {
-                $parts = explode ( '.', $table );
-                
-                if ($prefix = $this->_table_prefix) {
-                    // Get the offset of the table name, last part
-                    $offset = count ( $parts ) - 1;
-                    
-                    // Add the table prefix to the table name
-                    $parts [$offset] = $prefix . $parts [$offset];
-                }
-                
-                foreach ( $parts as & $part ) {
-                    // Quote each of the parts
-                    $part = $this->_identifier . $part . $this->_identifier;
-                }
-                
-                $table = implode ( '.', $parts );
-            } else {
-                // Add the table prefix
-                $table = $this->_identifier . $this->_table_prefix . $table . $this->_identifier;
-            }
-        }
-        
-        if (isset ( $alias )) {
-            // Attach table prefix to alias
-            $table .= ' AS ' . $this->_identifier.$this->_table_prefix. $alias . $this->_identifier;
-        }
-        return $table;
-    }
     public function quoteValue($value, $column_type=null)
     {
         static $no_esc;
-        if ($value === NULL) {
-            return 'NULL';
-        } elseif ($value === TRUE) {
-            return "'1'";
-        } elseif ($value === FALSE) {
-            return "'0'";
-        } elseif (is_object ( $value )) {
-            if ($value instanceof Expr) {
-                // Compile the expression
-                return $value->compile($this);
-            } else {
-                // Convert the object to a string
-                return $this->quoteValue ( ( string ) $value,$column_type );
-            }
-        } elseif (is_array ( $value )) {
-            return '(' . implode ( ', ', array_map ( array (
-                $this,
-                __FUNCTION__
-            ), $value ) ) . ')';
-        } elseif (is_int ( $value )) {
-            return ( int ) $value;
-        } elseif (is_float ( $value )) {
-            // Convert to non-locale aware float to prevent possible commas
-            return sprintf ( '%F', $value );
-        }
+        list($status,$value)=$this->quoteString($value);
+        if ($status)return $value;
         if($no_esc)return "'".addslashes($value)."'";
         $db=$this->_pool->pop($this->_query_config[1]);
         $mysql=$db->mysql();
@@ -315,6 +213,11 @@ class MYSQLPool implements \LSYS\Model\Database {
         $this->_db_free();
         $this->_db=$this->_pool->pop($this->_query_config[0]);
         $status=$this->_db->mysql()->begin();
+        if ($status) {
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::transactionBegin());
+        }else{
+            $this->event_manager&&$this->event_manager->dispatch(DBEvent::transactionFail());
+        }
         $this->_in_transaction=true;
         return $status;
     }
@@ -332,6 +235,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         $state=$this->_db->mysql()->rollback();
         $this->_db_free();
         $this->_in_transaction=false;
+        $this->event_manager&&$this->event_manager->dispatch(DBEvent::transactionRollback());
         return $state;
     }
     /**
@@ -345,6 +249,7 @@ class MYSQLPool implements \LSYS\Model\Database {
         $state=$this->_db->mysql()->commit();
         $this->_db_free();
         $this->_in_transaction=false;
+        $this->event_manager&&$this->event_manager->dispatch(DBEvent::transactionCommit());
         return $state;
     }
     public function __destruct() {

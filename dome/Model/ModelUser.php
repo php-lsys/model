@@ -1,6 +1,8 @@
 <?php
 namespace Model;
 
+use LSYS\Model\Database\Builder;
+
 class ModelUser extends \LSYS\Model{
     
     //方式1.通过表生成代码
@@ -30,10 +32,14 @@ class ModelUser extends \LSYS\Model{
     }
     public function relatedFactory(){
         return (new \LSYS\Model\Related())
-            ->addHasOne('orm1', __CLASS__, 'code')
-            ->addBelongsTo('orm2', __CLASS__, 'code')
-            ->addHasMany('orm3', __CLASS__, 'code')
-            ->addThroughHasMany('orm4', __CLASS__,['user','t'],'id','code')
+            ->addHasOne('mail_one', ModelEmail::class, 'user_id')
+            ->addBelongsTo('self_mail', ModelEmail::class, 'email_id')
+            ->addHasMany('mail_all', ModelEmail::class, 'my_user_id')
+            ->addThroughHasMany('mail_alls', ModelEmail::class,'user_nx','email_id','user_id')
+            ->setBuilderCallback('mail_alls',function(Builder $builder,callable $parent){
+                $parent($builder);
+                $builder->where('user_nx.is_del', '=', "0");
+            })
         ;
     }
     public function dataList() {
