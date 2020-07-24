@@ -480,8 +480,8 @@ abstract class TraitBuild{
             $type=$this->toCodeType($column);
             $doc[]=" * @property {$type} \${$name}\t{$commit}";
         }
-        if (class_exists($model_name,true)&&method_exists($model_name, 'relatedFactory')) {
-            $related=call_user_func([(new \ReflectionClass($model_name))->newInstance(),'relatedFactory']);
+        if (class_exists($model_name,true)&&method_exists($model_name, 'related')) {
+            $related=call_user_func([(new \ReflectionClass($model_name))->newInstance(),'related']);
             if ($related instanceof Related) {
                 foreach ($related->getColumns() as $related_col){
                     $_model_name=$related->modelName($related_col);
