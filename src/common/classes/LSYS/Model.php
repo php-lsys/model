@@ -52,6 +52,9 @@ abstract class Model implements Table{
         if (is_null($model))return null;
         $related=$this->related();
         if (!$related->isHasMany($column))return null;
+        if (!$entity->loaded()) {
+            return 0;
+        }
         $out=$this->_hasManyCount($model,[$entity], $column);
         $out=current($out);
         return $out===false?null:$out;
