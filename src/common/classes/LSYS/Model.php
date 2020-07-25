@@ -91,6 +91,9 @@ abstract class Model implements Table{
 	    if (is_null($model))return null;
 	    $related=$this->related();
 	    if (!$related->isHasMany($column))return null;
+	    if (!$entity->loaded()) {
+	        return $this->_builderEntitySet($model->dbBuilder(), []);
+	    }
         $out=$this->_hasMany($model,[$entity], $column);
         $out=current($out);
         return $out===false?null:$out;
@@ -106,6 +109,9 @@ abstract class Model implements Table{
 	    if (is_null($model))return null;
 	    $related=$this->related();
 	    if (!$related->isHasOne($column))return null;
+	    if (!$entity->loaded()) {
+	        return $this->_createEntity($model);
+	    }
 	    $out=$this->_hasOne($model,[$entity], $column);
         $out=current($out);
         return $out===false?null:$out;
@@ -121,6 +127,9 @@ abstract class Model implements Table{
 	    if (is_null($model))return null;
 	    $related=$this->related();
 	    if (!$related->isBelongsTo($column))return null;
+	    if (!$entity->loaded()) {
+	        return $this->_createEntity($model);
+	    }
 	    $out=$this->_belongsTo($model,[$entity], $column);
         $out=current($out);
         return $out===false?null:$out;
