@@ -621,7 +621,7 @@ abstract class Model implements Table{
 	    foreach ($vals as $value) {
 	        $dbbuilder->orWhereOpen();
 	        foreach ($cols as $key=>$col) {
-	            $dbbuilder->where($col, "=", $value[$key]);
+	            $dbbuilder->where($col, "=", $value[$key]??NULL);
 	        }
 	        $dbbuilder->orWhereClose();
 	    }
