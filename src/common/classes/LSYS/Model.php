@@ -300,11 +300,13 @@ abstract class Model implements Table{
 	            foreach ($rc as $entity_key=>$_foreign_key){
 	                $val[$entity_key]=strval($entity->__get($_foreign_key));
 	            }
+	            ksort($val);
 	            $out[serialize($val)]=intval($entity->__get('total'));
 	        }
 	        foreach ($entity_set as $entity) {
 	            $key=$entity->pk();
 	            $key=array_map('strval', $key);
+	            ksort($key);
 	            $key=serialize($key);
 	            if (isset($out[$key]))continue;
 	            $out[$key]=0;
@@ -433,6 +435,7 @@ abstract class Model implements Table{
     	            foreach ($rc as $entity_key=>$_foreign_key){
     	                $val[$entity_key]=strval($entity->__get($_foreign_key));
     	            }
+    	            ksort($val);
     	            $tmp[serialize($val)][]=$entity->exportData();
     	        }
     	        foreach ($tmp as $key=>$value) {
@@ -441,6 +444,7 @@ abstract class Model implements Table{
     	        foreach ($entity_set as $entity) {
     	            $key=$entity->pk();
     	            $key=array_map('strval', $key);
+    	            ksort($key);
     	            $key=serialize($key);
     	            if (isset($out[$key]))continue;
     	            $out[$key]=$this->_builderEntitySet($dbbuilder, []);
@@ -496,9 +500,11 @@ abstract class Model implements Table{
     	            foreach ($col as $tk=>$value) {
     	                $val[$tk]=strval($entity->__get($value));
     	            }
+    	            ksort($val);
     	            $out[serialize($val)]=$entity;
     	        }
     	        foreach ($vals as $val){
+    	            ksort($val);
     	            $key=serialize($val);
     	            if (isset($out[$key]))continue;
     	            $out[$key]=$this->_createEntity($model);;
@@ -543,6 +549,7 @@ abstract class Model implements Table{
     	            $rpk=$entity->pk();
     	            if (is_array($rpk)) {
     	                $rpk=array_map('strval', $rpk);
+    	                ksort($rpk);
     	                $rpk=serialize($rpk);
     	            }
     	            $out[$rpk]=$tmp[$entity->__get(strval($foreign_key))]??$this->_createEntity($model);
@@ -557,6 +564,7 @@ abstract class Model implements Table{
 	                $val[$_foreign_key]=strval($entity->__get(strval($_foreign_val)));//得到对方主键
 	            }
 	            if ($related->isFilter($column,$val)) {
+	                ksort($val);
 	                $out[serialize($val)]=$this->_createEntity($model);
 	                continue;
 	            }
@@ -569,9 +577,11 @@ abstract class Model implements Table{
     	        
     	        $tmp=[];
     	        foreach ($dbbuilder->findAll() as $entity){
+    	            $val=[];
     	            foreach ($foreign_key as $tk=>$sval) {
     	                $val[$sval]=strval($entity->__get($tk));
     	            }
+    	            ksort($val);
     	            $tmp[serialize($val)]=$entity;
     	        }
     	        foreach ($entity_set as $entity) {
@@ -582,8 +592,10 @@ abstract class Model implements Table{
     	            $rpk=$entity->pk();
     	            if (is_array($rpk)) {
     	                $rpk=array_map('strval', $rpk);
+    	                ksort($rpk);
     	                $rpk=serialize($rpk);
     	            }
+    	            ksort($val);
     	            $out[$rpk]=$tmp[serialize($val)]??$this->_createEntity($model);
     	        }
 	        }

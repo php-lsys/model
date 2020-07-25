@@ -32,7 +32,7 @@ class Related{
      * @param string $column 对外字段名
      * @param string $model 对方模型名
      * @param string|array $through 关系表名 或 [关系表名,别名]
-     * @param string|array $far_key 关系表存对方主键的字段名 或 联合主键:[关系表存对方主键的字段名=>关系表存对方主键的字段名]
+     * @param string|array $far_key 关系表存对方主键的字段名 或 联合主键:[对方主键的字段名=>关系表存对方主键的字段名]
      * @param string|array $foreign_key 关系表存本身主键的字段名 或 联合主键:[当前表主键字段名=>关系表存本身主键的字段名]
      * @return $this
      */
