@@ -483,6 +483,7 @@ abstract class TraitBuild{
         if (class_exists($model_name,true)&&method_exists($model_name, 'related')) {
             $related=call_user_func([(new \ReflectionClass($model_name))->newInstance(),'related']);
             if ($related instanceof Related) {
+                $predoc=[];
                 foreach ($related->getColumns() as $related_col){
                     $_model_name=$related->modelName($related_col);
                     if (empty($_model_name))continue;
@@ -494,17 +495,23 @@ abstract class TraitBuild{
                         continue;
                     }
                     if ($related->isHasOne($related_col)) {
-                        $doc[]=" * @property-read \\{$entity_name} \${$related_col} define from hasOne";
+                        $predoc[]=" * @property-read \\{$entity_name} \${$related_col} define from hasOne";
                     }
                     if ($related->isBelongsTo($related_col)) {
-                        $doc[]=" * @property-read \\{$entity_name} \${$related_col} define from BelongsTo";
+                        $predoc[]=" * @property-read \\{$entity_name} \${$related_col} define from BelongsTo";
                     }
                     if ($related->isHasMany($related_col)) {
-                        $doc[]=" * @property-read \LSYS\Model\EntitySet|\\{$entity_name}[] \${$related_col} define from HasMany";
+                        $predoc[]=" * @property-read \LSYS\Model\EntitySet|\\{$entity_name}[] \${$related_col} define from HasMany";
                     }
+                }
+                if (count($predoc)) {
+                    $doc=array_merge($doc,$predoc);
+                    $doc[]=" * @see {$model_name}::relatedFactory()";
                 }
             }
         }
+        
+        
         $doc[]=" * @method {$model_name} table() return {$model_name} object";
         $doc=implode("\n", $doc);
         return "/**\n{$doc}\n*/";
