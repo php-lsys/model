@@ -7,9 +7,10 @@ use LSYS\Model\EntitySet;
 use function LSYS\Model\__;
 use LSYS\Model\Related;
 use LSYS\Model\Database\Builder;
-use LSYS\Entity\Column;
+use LSYS\Model\Column;
 use LSYS\Entity\ColumnSet;
 use LSYS\Entity\EntityColumnSet;
+use LSYS\Model\Exception;
 abstract class Model implements Table{
     private $_db;
     private $_related;
@@ -223,7 +224,7 @@ abstract class Model implements Table{
 	            $dbbuilder->where($col, "in", $vals);
 	            $rc=$column_table_ . '_' . $foreign_key;
 	            $ac=$column_table . '.' . $foreign_key." as ".$rc;
-	            $dbbuilder->columnSet(new ColumnSet([
+	            $dbbuilder->columnSet(new EntityColumnSet([],[
 	                new Column($rc,$ac),
 	                new Column('total','count(*) as total'),
 	            ]));
@@ -231,7 +232,7 @@ abstract class Model implements Table{
 	            //$foreign_key 对方存本身主键字段
 	            $rc = $col = strval($foreign_key);
 	            $dbbuilder->where($col, "in", $vals);
-	            $dbbuilder->columnSet(new ColumnSet([
+	            $dbbuilder->columnSet(new EntityColumnSet([],[
 	                new Column($rc),
 	                new Column('total','count(*) as total'),
 	            ]));
@@ -267,9 +268,11 @@ abstract class Model implements Table{
 	            //$far_key 中间表存对方主键字段
 	            $far_key=$related->getHasManyFarKey($column);//[对方表字段=>中间表字段]
 	            $model_key=$model->primaryKey();
-	            if (!is_array($model_key)) $far_key=[$model_key=>strval($far_key)];
+	            if (!is_array($model_key)){
+	                throw new Exception(__("model :model primary key must be array,may be related setting is wrong.",[":model"=>get_class($model)]));
+	            }
 	            $dbbuilder->join ($through);
-	            foreach ($model_key as $_model_key){
+	            foreach ((array)$model_key as $_model_key){
 	                $join_col1 = $this->db()->expr($column_table . '.' . $far_key[$_model_key]);
 	                $join_col2 = $model->tableName() . '.' . $_model_key;
 	                $dbbuilder->on ( $join_col1, '=', $join_col2 );
@@ -281,26 +284,26 @@ abstract class Model implements Table{
 	            }
 	            $this->_builderPkWheres($dbbuilder, $col, $vals);
 	            
-	            $column=[];
+	            $columns=[];
 	            foreach ($foreign_key as $entity_key=>$_foreign_key) {
 	                $_rc=$column_table_ . '_' . $_foreign_key;
 	                $ac=$column_table . '.' . $_foreign_key." as ".$_rc;
 	                foreach ($col as $v){
-	                    $column[]=new Column($_rc,$ac);
+	                    $columns[]=new Column($_rc,$ac);
 	                }
 	                $rc[$entity_key]=$_rc;
 	            }
-	            $column[]=new Column('total','count(*) as total');
-	            $dbbuilder->columnSet(new ColumnSet($column));
+	            $columns[]=new Column('total','count(*) as total');
+	            $dbbuilder->columnSet(new EntityColumnSet([],$columns));
 	        }else{
 	            //$foreign_key [本身主键名=>对方存本身主键名]
 	            $rc=$col=$foreign_key;
-	            $column=[];
+	            $columns=[];
 	            foreach ($col as $v){
-	                $column[]=new Column($v);
+	                $columns[]=new Column($v);
 	            }
-	            $column[]=new Column('total','count(*) as total');
-	            $dbbuilder->columnSet(new ColumnSet($column));
+	            $columns[]=new Column('total','count(*) as total');
+	            $dbbuilder->columnSet(new EntityColumnSet([],$columns));
 	            $this->_builderPkWheres($dbbuilder, $col, $vals);
 	        }
 	        $related->runBuilderCallback($column,$dbbuilder);
@@ -316,7 +319,7 @@ abstract class Model implements Table{
 	            $out[serialize($val)]=intval($entity->__get('total'));
 	        }
 	        foreach ($entity_set as $entity) {
-	            $key=$entity->pk();
+	            $key=(array)$entity->pk();
 	            $key=array_map('strval', $key);
 	            ksort($key);
 	            $key=serialize($key);

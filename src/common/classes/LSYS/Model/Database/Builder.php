@@ -376,13 +376,16 @@ class Builder extends \LSYS\Entity\Database\SQLBuilder{
         }else{
             foreach ($pkname as $tname){
                 if(array_search($tname, $columns,true)===false){
-                    $add[]=$pkname;
+                    $add[]=$tname;
                 }
             }
         }
         foreach ($add as $value)
         {
-            array_push($_field, $db->quoteColumn(array($this->table()->tableName().".".$value,$value)));
+            if (!is_array($value))$value=[$value];
+            foreach ($value as $vv){
+                array_push($_field, $db->quoteColumn(array($this->table()->tableName().".".$vv,$vv)));
+            }
         }
         foreach ($columnset as $value)
         {

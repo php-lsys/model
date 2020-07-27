@@ -10,6 +10,7 @@ class Related{
     /**
      * 一[本身]对多[对方]关系
      * 对方(或第三方)存本身主键,但对方(或第三方)有多条记录
+     * 关联主键为联合主键时 $foreign_key 为数组,示例:['id'=>'my_user_id','umid'=>'my_user_mid']
      * @param string $column 对外字段名
      * @param string $model 对方模型
      * @param string $foreign_key 对方存本身主键的字段  或 联合主键:[本身主键名=>对方存本身主键的字段]
@@ -31,6 +32,8 @@ class Related{
      * 通过第三方关系表存放的一对多关系
      * @param string $column 对外字段名
      * @param string $model 对方模型名
+     * 关联主键为联合主键时 $foreign_key 和$far_key 为数组
+     * 示例:$far_key:['id'=>'email_id','emid'=>'email_emid'],$foreign_key:['id'=>'user_id','umid'=>'user_umid']
      * @param string|array $through 关系表名 或 [关系表名,别名]
      * @param string|array $far_key 关系表存对方主键的字段名 或 联合主键:[对方主键的字段名=>关系表存对方主键的字段名]
      * @param string|array $foreign_key 关系表存本身主键的字段名 或 联合主键:[当前表主键字段名=>关系表存本身主键的字段名]
@@ -54,6 +57,7 @@ class Related{
     /**
      * 一[对方]对一[本身]关系
      * 对方存本身主键,对方一个记录
+     * 关联主键为联合主键时 $foreign_key 为数组,示例:['id'=>'user_id','umid'=>'user_mid']
      * @param string $column 关联字段
      * @param string $model 对方模型名
      * @param string $foreign_key 对方存本身主键字段名 或 联合主键:['本身主键字段'=>'对方存本身主键字段名']
@@ -73,6 +77,7 @@ class Related{
     /**
      * (多或一[对方])对一[本身]关系
      * 本身存对方主键
+     * 关联主键为联合主键时 $foreign_key 为数组,示例:['id'=>'email_id','emid'=>'uemid']
      * @param string $column 关联字段
      * @param string $model 对方模型名
      * @param string $foreign_key 本身存对方主键键名 或 联合主键:['对方主键名'=>'本身存对方主键键名']
@@ -195,7 +200,8 @@ class Related{
         return $this->_has_one[$column]['foreign_key'];
     }
     /**
-     * 设置查询构造器回调
+     * 设置查询构造器回调中间件
+     * $callback 参数: $builder 查询构造器 $parent($builder) 其他处理回调函数,如不主动调用其他注册失效
      * @param string $column
      * @param callable $callback(Builder $builder,callable $parent)
      * @return $this

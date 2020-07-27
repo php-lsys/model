@@ -50,10 +50,10 @@ class EntitySet extends \LSYS\Entity\EntitySet{
             $this->_table=(new \ReflectionClass($this->_entity))->newInstance()->table();
         }
         $related=$this->_table->related();
-        if(!is_array($this->pre_count_data[$column])){
+        if(!isset($this->pre_count_data[$column])){
             if (!$related->isHasMany($column))return null;
             $keep_key=$this->key();
-            $out=$this->_table->hasManys($this, $column);
+            $out=$this->_table->hasManysCount($this, $column);
             $this->rewind();
             while (true) {
                 if(!$this->valid()||$this->key()==$keep_key)break;
