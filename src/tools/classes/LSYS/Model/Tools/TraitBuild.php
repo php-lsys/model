@@ -603,14 +603,14 @@ abstract class TraitBuild{
         }
         $namespace=$this->_namespace;
         if (empty($namespace))$namespace=null;
-        else{
-            $namespaces=explode("\\", $namespace);
-            while ($dir=array_shift($namespaces)){
-                $class_dir.=DIRECTORY_SEPARATOR.$dir;
-                is_dir($class_dir)||mkdir($class_dir);
-            }
-            $class_dir.=DIRECTORY_SEPARATOR;
-        }
+//         else{
+//             $namespaces=explode("\\", $namespace);
+//             while ($dir=array_shift($namespaces)){
+//                 $class_dir.=DIRECTORY_SEPARATOR.$dir;
+//                 is_dir($class_dir)||mkdir($class_dir);
+//             }
+//             $class_dir.=DIRECTORY_SEPARATOR;
+//         }
         if (!$namespace)$p_namespace='';
         else $p_namespace='namespace '.$namespace.';';
         $auto_namespace='Traits';
