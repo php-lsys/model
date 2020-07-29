@@ -9,7 +9,8 @@ namespace Model\Traits;
  * @property-read \Model\EntityEmail $self_mail define from BelongsTo
  * @property-read \Model\EntityEmail $mail_one define from hasOne
  * @property-read \LSYS\Model\EntitySet|\Model\EntityEmail[] $mail_all define from HasMany
- * @property-read \LSYS\Model\EntitySet|\Model\EntityUser[] $mail_alls define from HasMany
+ * @property-read \LSYS\Model\EntitySet|\Model\EntityEmail[] $mail_alls define from HasMany
+ * @see \Model\ModelUser::relatedFactory()
  * @method \Model\ModelUser table() return \Model\ModelUser object
 */
 trait EntityUserTrait{
