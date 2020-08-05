@@ -11,27 +11,27 @@ class DBEvent extends Event{
     const TRANSACTION_ROLLBACK="db.transaction.rollback";
     const TRANSACTION_FAIL="db.transaction.fail";
     public static function sqlStart($sql,bool $exec) {
-        return new self(self::SQL_START,compact(func_get_argsname()));
+        return new self(self::SQL_START,func_get_args());
     }
     public static function sqlOk($sql,bool $exec) {
-        return new self(self::SQL_OK,compact(func_get_argsname()));
+        return new self(self::SQL_OK,func_get_args());
     }
     public static function sqlBad($sql,bool $exec) {
-        return new self(self::SQL_BAD,compact(func_get_argsname()));
+        return new self(self::SQL_BAD,func_get_args());
     }
     public static function sqlEnd($sql,bool $exec) {
-        return new self(self::SQL_END,compact(func_get_argsname()));
+        return new self(self::SQL_END,func_get_args());
     }
     public static function transactionBegin() {
-        return new self(self::TRANSACTION_BEGIN,compact(func_get_argsname()));
+        return new self(self::TRANSACTION_BEGIN,func_get_args());
     }
     public static function transactionCommit() {
-        return new self(self::TRANSACTION_COMMIT,compact(func_get_argsname()));
+        return new self(self::TRANSACTION_COMMIT,func_get_args());
     }
     public static function transactionRollback() {
-        return new self(self::TRANSACTION_ROLLBACK,compact(func_get_argsname()));
+        return new self(self::TRANSACTION_ROLLBACK,func_get_args());
     }
     public static function transactionFail() {
-        return new self(self::TRANSACTION_FAIL,compact(func_get_argsname()));
+        return new self(self::TRANSACTION_FAIL,func_get_args());
     }
 }
