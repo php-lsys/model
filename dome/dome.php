@@ -82,8 +82,7 @@ $e=new EntityUser();
 $e->name="fasdf".rand(0,10000);
 $e1=new EntityUser();
 $e1->name="fasdf".rand(0,10000);
-$db=$e->table()->db();
-$e1->table()->db($db);
+$db=$e1->table()->db();
 $db->beginTransaction();
 try{
     $e->save();

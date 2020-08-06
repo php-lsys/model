@@ -12,7 +12,6 @@ use LSYS\Entity\ColumnSet;
 use LSYS\Entity\EntityColumnSet;
 use LSYS\Model\Exception;
 abstract class Model implements Table{
-    private $_db;
     private $_related;
     /**
      * 返回实体名
@@ -38,9 +37,7 @@ abstract class Model implements Table{
     /**
      * @return Database
      */
-    public function db(Database $db=null){
-        if($db)$this->_db=$db;
-        if($this->_db)return $this->_db;
+    public function db(){
         return DI::get()->modelDB();
     }
     /**
